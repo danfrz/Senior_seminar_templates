@@ -46,74 +46,88 @@ Daniel C. Frazier\\
 [Abstract contents]
 \end{abstract}
 
-\keywords{Processors, Threads, Multiprocessing, Scheduling, \LaTeX, text tagging}
+\keywords{Scheduling, Threads, Multiprocessing, Processors}
 
 \section{Introduction}
-\label{sec:introduction}
+\label{sec:intro}
 
 [Introduction contents]
 
-\section{The {\secit Body} of The Paper}
-\label{sec:body}
+\section{Background}
+\label{sec:bg}
 
 [Body text]
 
-\subsection{Type Changes and {\subsecit Special} Characters}
-\label{sec:typeChangesSpecialChars}
+\subsection{Threads and Threading}
+\label{sec:threads}
 
 [Body text]
 
-\subsection{Math Equations}
-\label{sec:mathEquations}
+\subsection{Completely Fair Scheduler}
+\label{sec:cfs}
 
 [Body text]
 
-\subsubsection{Inline (In-text) Equations}
-\label{sec:inlineEquations}
+\subsection{Cache on NUMA Systems}
+\label{sec:cache}
 
 [Body text]
 
-\subsubsection{Display Equations}
-\label{sec:displayEquations}
+\subsection{Cache Locality}
+\label{sec:cachelocality}
 
 [Body text]
 
-\subsection{Multi-line formulas}
-\label{sec:multiLineFormulas}
+\section{Methods}
+\label{sec:methods}
 
 [Body text]
 
-\subsection{Figures}
-\label{sec:figures}
+\subsection{Shuffler and Jumbler}
+\label{sec:sj}
 
 [Body text]
 
-\subsection{Tables}
-\label{sec:tables}
+\subsubsection{Placing Threads to Improve Locality}
+\label{sec:threadlocality}
 
 [Body text]
 
-\subsection{Citations}
-\label{sec:citations}
+\subsubsection{Shuffler}
+\label{sec:shuffler}
+
+[Body text]
+
+\subsubsection{Jumbler}
+\label{sec:jumbler}
+
+[Body text]
+
+\subsubsection{Shuffler and Jumbler Performance}
+\label{sec:sj_performance}
+
+[Body text]
+
+\subsection{FLSCHED for Xeon Phi Manycore Processor}
+\label{sec:flsched}
+
+[Body text]
+
+\subsubsection{Lockless Thread Scheduler}
+\label{sec:flsched_about}
 
 \cite{Aaronson:2005,Garey:1979,Brun:2008}
 ~\cite{OM:2008}
 
-\subsection{Theorem-like Constructs}
-\label{sec:theoremLikeConstructs}
-
-[Body text]
-
-\subsection*{A {\secit Caveat} for the \TeX\ Expert}
-\label{sec:caveatForExperts}
+\subsubsection{FLSCHED Perfomance}
+\label{sec:flsched_performance}
 
 [Body text]
 
 \section{Conclusions}
 \label{sec:conclusions}
 
-
-[Body text]
+[Conclusion text]
 
 \section*{Acknowledgments}
 \label{sec:acknowledgments}
@@ -125,9 +139,7 @@ Daniel C. Frazier\\
 \bibliographystyle{abbrv}
 % sample_paper.bib is the name of the BibTex file containing the
 % bibliography entries. Note that you *don't* include the .bib ending here.
-
 \bibliography{sample_paper}  
-
 % You must have a proper ".bib" file
 %  and remember to run:
 % latex bibtex latex latex
