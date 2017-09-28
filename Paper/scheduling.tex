@@ -23,7 +23,7 @@
 %%% REMEMBER TO CHANGE THE SEMESTER AND YEAR AS NEEDED
 \conferenceinfo{UMM CSci Senior Seminar Conference, December 2017}{Morris, MN}
 
-\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Non-Uniform Memory Access Systems}
+\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Systems - Section Draft (METHODS)}
 
 \numberofauthors{1}
 
@@ -46,7 +46,7 @@ Daniel C. Frazier\\
 [Abstract contents]
 \end{abstract}
 
-\keywords{Scheduling, Threads, Multiprocessing, Processors}
+\keywords{Scheduling; multicore; thread migration; Multiprocessing; lock contention; last-level cache misses}
 
 \section{Introduction}
 \label{sec:intro}
@@ -66,27 +66,34 @@ Daniel C. Frazier\\
 \subsection{Completely Fair Scheduler}
 \label{sec:cfs}
 
-[Body text]
+Description of CFS, linux implementation of Weighted Fair Queueing (WFQ) algorithm and how it originally intended for single-core use. \cite{Lozi:2016}
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
 
-[Body text]
+Non-uniform memory access (NUMA):
+There are many levels of cache and they exist in a hierarchy. L1 Cache exists on a processor or on a small group of processors. L2 (and higher) Cache exists on increasing sizes of groupings of processors.
+Cache misses happen and they reduce performance substantially.
 
 \subsection{Cache Locality}
 \label{sec:cachelocality}
 
-[Body text]
+It's faster to access data in L1 Cache than L2 and above. Allocating related threads to processors such that they share cache improves locality of cache lookups and are less likely to have cache misses.
+
+\subsection{Faults of the CFS}
+\label{sec:cfsfaults}
+
+CFS modifications were made to work for multiprocessor systems and it is buggy and leaves threads waiting while a processor is idle for short, previously undetected amounts of time. Give stats for time idle.\cite{Lozi:2016}
 
 \section{Methods}
 \label{sec:methods}
 
-[Body text]
+So far we've seen how threads are being mismanaged by the CFS and how they impact performance. Next, we'll look at some recent ways by which improvements have been found.
 
 \subsection{Shuffler and Jumbler}
 \label{sec:sj}
 
-[Body text]
+One approach 
 
 \subsubsection{Placing Threads to Improve Locality}
 \label{sec:threadlocality}
@@ -116,8 +123,8 @@ Daniel C. Frazier\\
 \subsubsection{Lockless Thread Scheduler}
 \label{sec:flsched_about}
 
-\cite{Aaronson:2005,Garey:1979,Brun:2008}
-~\cite{OM:2008}
+\cite{Lozi:2016, NisarEtal:2017}
+~\cite{KumarEtal:2014}
 
 \subsubsection{FLSCHED Perfomance}
 \label{sec:flsched_performance}
