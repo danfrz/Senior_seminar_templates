@@ -10,6 +10,7 @@
 \documentclass{sig-alternate}
 \usepackage{color}
 \usepackage[colorinlistoftodos]{todonotes}
+\usepackage{algorithm2e}
 
 %%%%% Uncomment the following line and comment out the previous one
 %%%%% to remove all comments
@@ -71,7 +72,7 @@ Description of CFS, linux implementation of Weighted Fair Queueing (WFQ) algorit
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
 
-Non-uniform memory access (NUMA):
+\textit{Non-uniform memory access (NUMA)}:
 There are many levels of cache and they exist in a hierarchy. L1 Cache exists on a processor or on a small group of processors. L2 (and higher) Cache exists on increasing sizes of groupings of processors.
 Cache misses happen and they reduce performance substantially.
 
@@ -83,37 +84,55 @@ It's faster to access data in L1 Cache than L2 and above. Allocating related thr
 \subsection{Faults of the CFS}
 \label{sec:cfsfaults}
 
-CFS modifications were made to work for multiprocessor systems and it is buggy and leaves threads waiting while a processor is idle for short, previously undetected amounts of time. Give stats for time idle.\cite{Lozi:2016}
+CFS modifications were made to work for multiprocessor systems and it is buggy and leaves threads waiting while a processor is idle for short, previously undetected amounts of time. Give stats for time idle \cite{Lozi:2016}. Kumar et al. defines LLC miss rate as the last level cache misses per thousand instructions (MPKI) \cite{KumarEtal:2014}.
 
 \section{Methods}
 \label{sec:methods}
 
-So far we've seen how threads are being mismanaged by the CFS and how they impact performance. Next, we'll look at some recent ways by which improvements have been found.
+So far we've seen how threads are being mismanaged by the CFS and how they impact performance. Next, we'll look at some recent developments that reduce lock contention.
 
 \subsection{Shuffler and Jumbler}
 \label{sec:sj}
 
-One approach 
-
-\subsubsection{Placing Threads to Improve Locality}
-\label{sec:threadlocality}
-
-[Body text]
+The CFS doesn't differentiate between threads of a single-threaded program versus the threads of a multithreaded program. This prevents the scheduler from using that metadata in it's thread distribution mechanism. The following thread schedulers improve upon this.
 
 \subsubsection{Shuffler}
 \label{sec:shuffler}
 
-[Body text]
+Performance of multithreaded applications on multicore multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework does this by the following. First we find the expected arrival time of locks on threads. Then we sort these threads by their expected arrival times and group them in as many groups as there are processors. Then we distribute these groups of threads to their own respective processors. See Algorithm \ref{alg:shuffler}. The migration of threads between processors is costly, but the thread that is waiting during that time is not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than it's data and the lock. This will be shown in the Performance section.\cite{KumarEtal:2014}
+
+For the first step of the algorithm you must find the expected arrival time of threads. The \textit{lock time} of a thread is measured by the percent of time it spends waiting for locks. This is only done for threads in user space. There exists a daemon thread that contains a data structure that maps threads to their lock times and processor ids. For the monitor we must choose a rate to sample lock times and a rate to perform thread migration (shuffling). We use prstat(1) to monitor lock times. Kumar et al found that finer sampling rates allow for detailed monitoring but also more overhead. They found that for sampling rates less than 200 ms, the overhead was significantly higher. For a lock sampling rate of 200 ms the process of sampling took less than 1\% system time. The Shuffling interval was chosen by experimentation. We tested various shuffling intervals on 20 programs and chose 500 ms.
+
+On an iteration of the grouping-forming procedure (every 200 ms), the daemon checks the total amount of time that was spent resolving locks on each thread and if that time exceeds a preset limit, then groups are formed again.
+
+On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they are assigned do not migrate. If nothing substantially different changed in how threads interacted, the shuffling step is effectively skipped.\cite{KumarEtal:2014}
+
+\begin{algorithm}
+	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+	\Input{N: Number of threads; C: Number of Sockets.}
+
+	\Repeat{application terminates}{
+		$\textbf{i. Monitor Threads}$ -- sample lock times of N threads.\\
+		\If{lock times exceed threshold}{
+			$\textbf{ii. Form Thread Groups}$ -- sort threads according to lock times and divide them into C groups. \\
+			$\textbf{iii. Perform Shuffling}$ -- shuffle threads to establish newly computed thread groups.
+		}
+	}			
+
+	\caption{The Shuffling Framework.}\label{euclid}\label{alg:shuffler}
+\end{algorithm}
 
 \subsubsection{Jumbler}
 \label{sec:jumbler}
 
-[Body text]
+
 
 \subsubsection{Shuffler and Jumbler Performance}
 \label{sec:sj_performance}
 
-[Body text]
+In Kumar et al we studied the lock times of 33 programs on a 64-core, 4-processor machine running Oracle Solaris 11. We identified 20 of those programs that experienced overall high lock times and used those programs to compare shuffling versus the standard scheduler.
+
+
 
 \subsection{FLSCHED for Xeon Phi Manycore Processor}
 \label{sec:flsched}
