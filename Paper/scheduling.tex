@@ -24,7 +24,7 @@
 %%% REMEMBER TO CHANGE THE SEMESTER AND YEAR AS NEEDED
 \conferenceinfo{UMM CSci Senior Seminar Conference, December 2017}{Morris, MN}
 
-\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Systems - Section Draft (METHODS)}
+\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Systems}
 
 \numberofauthors{1}
 
@@ -47,7 +47,7 @@ Daniel C. Frazier\\
 [Abstract contents]
 \end{abstract}
 
-\keywords{Scheduling; multicore; thread migration; Multiprocessing; lock contention; last-level cache misses}
+\keywords{Scheduling; thread migration; multicore; multiprocessing; lock contention; last-level cache misses}
 
 \section{Introduction}
 \label{sec:intro}
@@ -57,15 +57,18 @@ Daniel C. Frazier\\
 \section{Background}
 \label{sec:bg}
 
-[Body text]
+In this Section we will broadly establish how threading, scheduling and caching works. We will establish causes of cache misses in highly parallel programs mediated by the currently implementation of thread scheduler written for Linux.
 
-\subsection{Threads and Threading}
+\subsection{Threads and Scheduling}
 \label{sec:threads}
+Using any modern computer, there is an expectation that the operating system is running at all times (largely in the background) and that multiple different user programs and system programs should be able to run concurrently. Modern computer programs also often need to run more than one independent task at one time. This can be accomplished by employing \emph{threads}, or equivalently, making the program \emph{multithreaded}. Programs that involve long independent computations or programs with a graphical interface often benefit from employing threads. Threads are tied to the processes that spawn them.
 
-[Body text]
+The part of the operating system responsible for managing the runtime that each of these processes and their respective threads receive is called the Scheduler.\cite{Lozi:2016}
 
-\subsection{Completely Fair Scheduler}
+\subsection{Completely Fair Scheduler (CFS)}
 \label{sec:cfs}
+
+Scheduler implementations vary per operating system. For most schedulers, a scheduler creates timeslices. The scheduler used on Linux is called the Completely Fair Scheduler (CFS.)  \cite{Lozi:2016}
 
 Description of CFS, linux implementation of Weighted Fair Queueing (WFQ) algorithm and how it originally intended for single-core use. \cite{Lozi:2016}
 
