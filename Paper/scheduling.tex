@@ -57,20 +57,22 @@ Daniel C. Frazier\\
 \section{Background}
 \label{sec:bg}
 
-In this Section we will broadly establish how threading, scheduling and caching works. We will establish causes of cache misses in highly parallel programs mediated by the currently implementation of thread scheduler written for Linux.
+In this Section we will broadly establish how threading, scheduling and caching works. We will establish causes of cache misses in highly parallel programs mediated by the current implementation of thread scheduler written for Linux.
 
 \subsection{Threads and Scheduling}
 \label{sec:threads}
-Using any modern computer, there is an expectation that the operating system is running at all times (largely in the background) and that multiple different user programs and system programs should be able to run concurrently. Modern computer programs also often need to run more than one independent task at one time. This can be accomplished by employing \emph{threads}, or equivalently, making the program \emph{multithreaded}. Programs that involve long independent computations or programs with a graphical interface often benefit from employing threads. Threads are tied to the processes that spawn them.
+Using any modern computer, there is an expectation that the operating system is running at all times (largely in the background) and that multiple different user programs and system programs should be able to run concurrently. Modern computer programs also often need to run more than one independent task at one time. This can be accomplished by employing \emph{threads}, or equivalently, making the program \emph{multithreaded}. Programs that involve long independent computations or programs with a graphical interface often benefit from employing threads. Threads are tied to the processes that spawn them. A process always has at least one thread. Processes are typically independant of eachother while threads exist within a process. Threads within a process share address space while different processes have distinct address spaces. Context switching is typically faster for threads than processes because most of the state information between threads in a process is the same \cite{WikiThreads}. Context switching within a CPU is the process of storing and restoring the state of a process or thread so that execution can be paused or resumed. \cite{WikiContext}.
 
-The part of the operating system responsible for managing the runtime that each of these processes and their respective threads receive is called the Scheduler.\cite{Lozi:2016}
+The part of the operating system responsible for managing the CPU runtime that each of these processes and their respective threads is called the scheduler. New threads and processes are added to the scheduler when they are made \cite{Lozi:2016}.
 
 \subsection{Completely Fair Scheduler (CFS)}
 \label{sec:cfs}
 
-Scheduler implementations vary per operating system. For most schedulers, a scheduler creates timeslices. The scheduler used on Linux is called the Completely Fair Scheduler (CFS.)  \cite{Lozi:2016}
+Scheduler implementations vary per operating system. The scheduler used on Linux is called the Completely Fair Scheduler (CFS.) The CFS creates timeslices. CPU cycles are distributed between the amount of available threads.
 
-Description of CFS, linux implementation of Weighted Fair Queueing (WFQ) algorithm and how it originally intended for single-core use. \cite{Lozi:2016}
+\cite{Lozi:2016}
+
+Description of CFS, linux implementation of Weighted Fair Queueing (WFQ) algorithm and how it originally intended for single-core use \cite{Lozi:2016}.
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
@@ -102,13 +104,13 @@ The CFS doesn't differentiate between threads of a single-threaded program versu
 \subsubsection{Shuffler}
 \label{sec:shuffler}
 
-Performance of multithreaded applications on multicore multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework does this by the following. First we find the expected arrival time of locks on threads. Then we sort these threads by their expected arrival times and group them in as many groups as there are processors. Then we distribute these groups of threads to their own respective processors. See Algorithm \ref{alg:shuffler}. The migration of threads between processors is costly, but the thread that is waiting during that time is not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than it's data and the lock. This will be shown in the Performance section.\cite{KumarEtal:2014}
+Performance of multithreaded applications on multicore multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework does this by the following. First we find the expected arrival time of locks on threads. Then we sort these threads by their expected arrival times and group them in as many groups as there are processors. Then we distribute these groups of threads to their own respective processors. See Algorithm \ref{alg:shuffler}. The migration of threads between processors is costly, but the thread that is waiting during that time is not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than it's data and the lock. This will be shown in the Performance section \cite{KumarEtal:2014}.
 
 For the first step of the algorithm you must find the expected arrival time of threads. The \textit{lock time} of a thread is measured by the percent of time it spends waiting for locks. This is only done for threads in user space. There exists a daemon thread that contains a data structure that maps threads to their lock times and processor ids. For the monitor we must choose a rate to sample lock times and a rate to perform thread migration (shuffling). We use prstat(1) to monitor lock times. Kumar et al found that finer sampling rates allow for detailed monitoring but also more overhead. They found that for sampling rates less than 200 ms, the overhead was significantly higher. For a lock sampling rate of 200 ms the process of sampling took less than 1\% system time. The Shuffling interval was chosen by experimentation. We tested various shuffling intervals on 20 programs and chose 500 ms.
 
 On an iteration of the grouping-forming procedure (every 200 ms), the daemon checks the total amount of time that was spent resolving locks on each thread and if that time exceeds a preset limit, then groups are formed again.
 
-On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they are assigned do not migrate. If nothing substantially different changed in how threads interacted, the shuffling step is effectively skipped.\cite{KumarEtal:2014}
+On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they are assigned do not migrate. If nothing substantially different changed in how threads interacted, the shuffling step is effectively skipped \cite{KumarEtal:2014}.
 
 \begin{algorithm}
 	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
