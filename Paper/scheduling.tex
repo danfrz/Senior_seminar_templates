@@ -24,7 +24,7 @@
 %%% REMEMBER TO CHANGE THE SEMESTER AND YEAR AS NEEDED
 \conferenceinfo{UMM CSci Senior Seminar Conference, December 2017}{Morris, MN}
 
-\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Systems Draft}
+\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Systems [Draft]}
 
 \numberofauthors{1}
 
@@ -46,8 +46,10 @@ Daniel C. Frazier\\
 \todo[inline]{This is an incomplete Draft}
 
 \begin{abstract}
-[Abstract contents]
+Thread scheduling is a problem that has been around since the 1960s. In the 2000s the problem was considered solved but with the emergent popularity of multiprocessor multicore systems the problem space has become considerable more complex. This paper will describe some issues currently present in the Linux scheduler as well as three recent developments that improve the efficiency by 12 to 14 percent on average but for certain problems improves efficiency by over 100 times.
 \end{abstract}
+
+\todo[inline]{make numbers more accurate and the situations they result from}
 
 \keywords{Scheduling; thread migration; multicore; multiprocessing; lock contention; last-level cache misses}
 
@@ -78,23 +80,37 @@ Scheduler implementations vary per operating system. The scheduler used in Linux
 
 Threads that are running accumulate \emph{vruntime}, which is the runtime of a thread divided by it's weight. Once a thread's vruntime is greater than the amount of runtime that the thread was scheduled for and there is another thread waiting to take this thread's place, the running thread is preempted from the CPU. A thread may also become preempted if another thread with a smaller vruntime awakens. Threads are organized in a red-black tree called a \emph{runqueue} in which the leftmost node is always the thread with the smallest vruntime.~\cite{Lozi:2016}
 
-This algorithm becomes much more complex for multi-core systems. Each core must have it's own runqueue. If all cores shared one runqueue, each core would need to frequently make expensive calls for thread context information from other cores.~\cite{Lozi:2016}. For the scheduler to function properly and efficiently, it must keep each of the runqueues balanced to minimize expensive external calls and maximize the use of available cores. Most schedulers, including the CFS, run a load balancing algorithm that tries it's best to keep runqueues balanced. Load balancing was simple for single-core systems but with multi-core systems, bugs have existed even until today. Before we can meaningfully discuss these bugs, we must first understand how caching works for most multi-processor multi-core systems.
+In order for scheduler to work on multiple cores, each core must have it's own runqueue. If all cores shared one runqueue, each core would need to frequently make expensive calls for thread context information from other cores.~\cite{Lozi:2016}. For the scheduler to function properly and efficiently, it must keep each of the runqueues balanced to minimize expensive external calls and maximize the use of available cores. Most schedulers, including the CFS, run a load balancing algorithm that tries it's best to keep runqueues balanced. Load balancing was simple for single-core systems but with multi-core systems, bugs have existed even until today as illustrated in the following quote:
+
+\begin{quote}
+Our recent experience with the Linux scheduler revealed that the pressure to work around the challenging properties of modern hardware, such as non-uniform memory access latencies (NUMA), high costs of cache coherency and synchronization, and diverging CPU and memory latencies, resulted in a scheduler with an incredibly complex implementation. As a result, the very basic function of the scheduler, which is to make sure that runnable threads use idle cores, fell through the cracks.~\cite{Lozi:2016}
+\end{quote}
+
+Before we can meaningfully discuss these bugs, we must first understand how cache exists on most multi-processor multi-core systems and some related concepts.
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
 
-\emph{Non-uniform memory access (NUMA)}:
-There are many levels of cache and they exist in a hierarchy. L1 Cache exists on a processor or on a small group of processors. L2 (and higher) Cache exists on increasing sizes of groupings of processors.
-Cache misses happen and they reduce performance substantially.
+When a program is running, memory is stored in the RAM. The RAM exists a far ways away from the CPU relative to the cache. Imagine we had a program that sums up one million integers and they all fit in to RAM. It would be very slow for the CPU to request from the RAM every single integer one at a time. Cache allows us to speed up this process by migrating a chunk of data that the system predicts will be used frequently and moves it from the RAM into cache.
 
-It's faster to access data in L1 Cache than L2 and above. Allocating related threads to processors such that they share cache improves locality of cache lookups and are less likely to have cache misses.
+In a \emph{non-uniform memory access} system (\emph{NUMA}) there are many levels of cache and they exist in a hierarchy. At the lowest level, is a grouping of some amount of cores that together create a \emph{NUMA node}. The size of the grouping depends on the hardware. On the machine used in Lozi et al. there were 32 cores, 8 cores per NUMA node. See Figure~\ref{fig:NUMA}.~\cite{Lozi:2016} Numa nodes are the most atomic level of cache present on a modern computing system. Systems can have many levels of cache. The \emph{last level cache (LLC)} is labeled L1 and larger cache in the hierarchy are L2, L3, etc.. Last level cache has the fastest data lookup times from a core because it is located nearer to the CPU. If a unit of cache is not found in L1 cache, it is called a \emph{cache miss} and the data is searched for on the next level of cache. If the data can not be found in any level of cache, external memory is consulted. Moving data closer to the CPU improves \emph{locality} because it makes the data more "local" to where it needs to be.~\cite{WikiCache}
+
+\todo[inline]{Is a cache miss if data isn't found in L1 cache or in cache at all?}
+
+\begin{figure}
+\centering
+\psfig{file=NUMA.pdf,width =3in}
+\caption{32-core machine with four NUMA nodes. It only takes two hops to get from any core to another node. The shades represent scheduling domains relative to the first core.  From Lozi et al.~\cite{Lozi:2016}}
+\label{fig:NUMA}
+\end{figure}
 
 
-\todo[inline]{Include cache locality into the cache section because it works.}
 \subsection{Faults of the CFS}
 \label{sec:cfsfaults}
 
-CFS modifications were made to work for multiprocessor systems and it is buggy and leaves threads waiting while a processor is idle for short, previously undetected amounts of time. Give stats for time idle~\cite{Lozi:2016}. Kumar et al. defines LLC miss rate as the last level cache misses per thousand instructions (MPKI)~\cite{KumarEtal:2014}.
+As we mentioned in Section \ref{sec:cfs}, modifications were made to the CFS that introduced bugs that caused processors to remain idle even when there are threads waiting for short, previously undetected amounts of time. Give stats for time idle~\cite{Lozi:2016}. Kumar et al. defines LLC miss rate as the last level cache misses per thousand instructions (MPKI)~\cite{KumarEtal:2014}.
+
+\todo[inline]{Introduce locks, lock contention, and how they impact processor performance}
 
 \section{Methods}
 \label{sec:methods}
@@ -109,13 +125,13 @@ The CFS doesn't differentiate between threads of a single-threaded program versu
 \subsubsection{Shuffler}
 \label{sec:shuffler}
 
-Performance of multithreaded applications on multicore multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework does this by the following. First we find the expected arrival time of locks on threads. Then we sort these threads by their expected arrival times and group them in as many groups as there are processors. Then we distribute these groups of threads to their own respective processors. See Algorithm \ref{alg:shuffler}. The migration of threads between processors is costly, but the thread that is waiting during that time is not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than it's data and the lock. This will be shown in the Performance section.~\cite{KumarEtal:2014}
+Performance of multithreaded applications on multicore multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework does this by the following. First we find the expected arrival time of locks on threads. Then we sort these threads by their expected arrival times and group them in as many groups as there are processors. Then we distribute these groups of threads to their own respective processors. The migration of threads between processors is costly, but the threads that are contending for locks during that time are not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than it's data and the lock. This will be shown in the Performance section.~\cite{KumarEtal:2014}
 
-For the first step of the algorithm you must find the expected arrival time of threads. The \textit{lock time} of a thread is measured by the percent of time it spends waiting for locks. This is only done for threads in user space. There exists a daemon thread that contains a data structure that maps threads to their lock times and processor ids. For the monitor we must choose a rate to sample lock times and a rate to perform thread migration (shuffling). We use prstat(1) to monitor lock times. Kumar et al found that finer sampling rates allow for detailed monitoring but also more overhead. They found that for sampling rates less than 200 ms, the overhead was significantly higher. For a lock sampling rate of 200 ms the process of sampling took less than 1\% system time. The Shuffling interval was chosen by experimentation. We tested various shuffling intervals on 20 programs and chose 500 ms.
+For the first step of the algorithm you must find the expected arrival time of threads. The \textit{lock time} of a thread is measured by the percent of time it spends waiting for locks. There exists a daemon thread that contains a data structure that maps threads to their lock times and processor ids. For the monitor we must choose a rate to sample lock acquiring times at (lock arrival times) and a rate to perform thread migration (shuffling). Kumar et al. used prstat, a utility to report active processor statistics~\cite{prstat}, to monitor lock arrival times. They found that finer sampling rates allow for detailed monitoring but also more overhead. They also found that for sampling rates less than 200 ms, the overhead was significantly higher. For a lock sampling rate of 200 ms the process of sampling took less than 1\% system time. The Shuffling interval was chosen by experimentation. They tested various shuffling intervals on 20 programs and chose 500 ms.
 
 On an iteration of the grouping-forming procedure (every 200 ms), the daemon checks the total amount of time that was spent resolving locks on each thread and if that time exceeds a preset limit, then groups are formed again.
 
-On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they are assigned do not migrate. If nothing substantially different changed in how threads interacted, the shuffling step is effectively skipped.~\cite{KumarEtal:2014}
+On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they were assigned to do not migrate. If the way that threads interacted with eachother doesn't change, the shuffling step is effectively skipped.~\cite{KumarEtal:2014}
 
 \begin{algorithm}
 	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
@@ -142,7 +158,7 @@ On an iteration of the shuffling procedure (every 500 ms), shuffling checks to m
 \subsubsection{Shuffler and Jumbler Performance}
 \label{sec:sj_performance}
 
-In Kumar et al we studied the lock times of 33 programs on a 64-core, 4-processor machine running Oracle Solaris 11. We identified 20 of those programs that experienced overall high lock times and used those programs to compare shuffling versus the standard scheduler.
+We studied the lock times of 33 programs on a 64-core, 4-processor machine running Oracle Solaris 11. We identified 20 of those programs that experienced overall high lock times and used those programs to compare shuffling versus the standard scheduler.~\cite{KumarEtal:2014}
 
 
 
