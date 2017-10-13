@@ -46,22 +46,20 @@ Daniel C. Frazier\\
 \todo[inline]{This is an incomplete Draft}
 
 \begin{abstract}
-Thread scheduling is a problem that has been around since the 1960s. In the 2000s the problem was considered solved but with the emergent popularity of multiprocessor multicore systems the problem space has become considerable more complex. This paper will describe some issues currently present in the Linux scheduler as well as three recent developments that improve the efficiency by 12 to 14 percent on average but for certain problems improves efficiency by over 100 times.
+[Abstract text]
 \end{abstract}
-
-\todo[inline]{make numbers more accurate and the situations they result from}
 
 \keywords{Scheduling; thread migration; multicore; multiprocessing; lock contention; last-level cache misses}
 
 \section{Introduction}
 \label{sec:intro}
 
-[Introduction contents]
+Thread scheduling is a problem that has been around since the 1960's. In the 2000's the problem was considered solved but with the emergent popularity of multiprocessor multicore systems the problem space has become considerable more complex. This paper will describe some issues currently present in the Linux scheduler as well as three recent developments that substantially improve the efficiency of average programs but for certain programs improves efficiency by up to 138 times.
 
 \section{Background}
 \label{sec:bg}
 
-In this Section we will broadly establish how threading, scheduling and caching works. We will establish causes of cache misses in highly parallel programs mediated by the current implementation of thread scheduler written for Linux.
+In this Section we will broadly establish how threading, scheduling and caching works. We will establish causes of cache misses in the execution of programs mediated by the current implementation of thread scheduler written for Linux. We will establish information necessary to understand the recent developments made to improve thread scheduling for multiprocessor multicore non-uniform memory access systems. The first method/solution to these performance problems depend on understanding three flaws in the current implementation of the load balancer for the Linux thread scheduler. The other two solutions depend on reducing lock contention between threads via scheduling.
 
 \subsection{Threads and Scheduling}
 \label{sec:threads}
@@ -80,7 +78,7 @@ Scheduler implementations vary per operating system. The scheduler used in Linux
 
 Threads that are running accumulate \emph{vruntime}, which is the runtime of a thread divided by it's weight. Once a thread's vruntime is greater than the amount of runtime that the thread was scheduled for and there is another thread waiting to take this thread's place, the running thread is preempted from the CPU. A thread may also become preempted if another thread with a smaller vruntime awakens. Threads are organized in a red-black tree called a \emph{runqueue} in which the leftmost node is always the thread with the smallest vruntime.~\cite{Lozi:2016}
 
-In order for scheduler to work on multiple cores, each core must have it's own runqueue. If all cores shared one runqueue, each core would need to frequently make expensive calls for thread context information from other cores.~\cite{Lozi:2016}. For the scheduler to function properly and efficiently, it must keep each of the runqueues balanced to minimize expensive external calls and maximize the use of available cores. Most schedulers, including the CFS, run a load balancing algorithm that tries it's best to keep runqueues balanced. Load balancing was simple for single-core systems but with multi-core systems, bugs have existed even until today as illustrated in the following quote:
+In order for scheduler to work on multiple cores, each core must have it's own runqueue. If all cores shared one runqueue, each core would need to frequently make expensive calls for thread context information from other cores.~\cite{Lozi:2016}. For the scheduler to function properly and efficiently, it must keep each of the runqueues balanced to minimize expensive external calls and maximize the use of available cores. Most schedulers, including the CFS, run a load balancing algorithm that tries its best to keep runqueues balanced. Load balancing was simple for single-core systems but with multi-core systems, bugs have found there way into the system and persist even until today as illustrated in the following quote:
 
 \begin{quote}
 Our recent experience with the Linux scheduler revealed that the pressure to work around the challenging properties of modern hardware, such as non-uniform memory access latencies (NUMA), high costs of cache coherency and synchronization, and diverging CPU and memory latencies, resulted in a scheduler with an incredibly complex implementation. As a result, the very basic function of the scheduler, which is to make sure that runnable threads use idle cores, fell through the cracks.~\cite{Lozi:2016}
@@ -93,9 +91,8 @@ Before we can meaningfully discuss these bugs, we must first understand how cach
 
 When a program is running, memory is stored in the RAM. The RAM exists a far ways away from the CPU relative to the cache. Imagine we had a program that sums up one million integers and they all fit in to RAM. It would be very slow for the CPU to request from the RAM every single integer one at a time. Cache allows us to speed up this process by migrating a chunk of data that the system predicts will be used frequently and moves it from the RAM into cache.
 
-In a \emph{non-uniform memory access} system (\emph{NUMA}) there are many levels of cache and they exist in a hierarchy. At the lowest level, is a grouping of some amount of cores that together create a \emph{NUMA node}. The size of the grouping depends on the hardware. On the machine used in Lozi et al. there were 32 cores, 8 cores per NUMA node. See Figure~\ref{fig:NUMA}.~\cite{Lozi:2016} Numa nodes are the most atomic level of cache present on a modern computing system. Systems can have many levels of cache. The \emph{last level cache (LLC)} is labeled L1 and larger cache in the hierarchy are L2, L3, etc.. Last level cache has the fastest data lookup times from a core because it is located nearer to the CPU. If a unit of cache is not found in L1 cache, it is called a \emph{cache miss} and the data is searched for on the next level of cache. If the data can not be found in any level of cache, external memory is consulted. Moving data closer to the CPU improves \emph{locality} because it makes the data more "local" to where it needs to be.~\cite{WikiCache}
+In a \emph{non-uniform memory access (NUMA)} system  there are many levels of cache and they exist in a hierarchy. At the lowest level, is a grouping of some amount of cores that together create a \emph{NUMA node}. The size of the grouping depends on the hardware. On the machine used in Lozi et al. there were 32 cores, 8 cores per NUMA node. See Figure~\ref{fig:NUMA}.~\cite{Lozi:2016} NUMA nodes are the most atomic level of cache present on a modern computing system that employs NUMA. Systems can have many levels of cache. The \emph{last level cache (LLC)} is labeled L1 and larger cache in the hierarchy are L2, L3, etc.. NUMA nodes are L1 cache and are Last level cache. Last level cache has the fastest data lookup times from a core because it is located nearer to the CPU. If a unit of cache is not found in L1 cache, it is called an \emph{LLC cache miss} and the data is searched for in the next level of cache. If the data can not be found in any level of cache it is just called an \emph{LLC cache miss}, and external memory is consulted for the data. Moving data closer to the CPU improves \emph{locality} because it makes the data more "local" to where it needs to be. Improving locality improves performance because the system works less hard to load the data it needs.~\cite{WikiCache}
 
-\todo[inline]{Is a cache miss if data isn't found in L1 cache or in cache at all?}
 
 \begin{figure}
 \centering
@@ -104,26 +101,47 @@ In a \emph{non-uniform memory access} system (\emph{NUMA}) there are many levels
 \label{fig:NUMA}
 \end{figure}
 
-
-\subsection{Faults of the CFS}
-\label{sec:cfsfaults}
-
-As we mentioned in Section \ref{sec:cfs}, modifications were made to the CFS that introduced bugs that caused processors to remain idle even when there are threads waiting for short, previously undetected amounts of time. Give stats for time idle~\cite{Lozi:2016}. Kumar et al. defines LLC miss rate as the last level cache misses per thousand instructions (MPKI)~\cite{KumarEtal:2014}.
-
-\todo[inline]{Introduce locks, lock contention, and how they impact processor performance}
+\subsection{Locks and Lock contention}
+\label{sec:locks}
 
 \section{Methods}
 \label{sec:methods}
 
-So far we've seen how threads are being mismanaged by the CFS and how they impact performance. Next, we'll look at some recent developments that reduce lock contention.
+So far we've established what threads are, how cache works and where it resides on NUMA systems, how the CFS scheduler works. Now, we will discuss three bugs we found in the CFS load balancer, and their fixes which substantially improved scheduler efficiency. Later, we will show two more solutions that improve efficiency for certain kinds of programs running on multiprocessor multicore NUMA systems.
 
-\subsection{Shuffler and Jumbler}
-\label{sec:sj}
+\subsection{Load Balancing the CFS}
+\label{sec:loadbalance}
 
-The CFS doesn't differentiate between threads of a single-threaded program versus the threads of a multithreaded program. This prevents the scheduler from using that metadata in it's thread distribution mechanism. The following thread schedulers improve upon this.
+As we mentioned in Section \ref{sec:cfs}, modifications were made to the CFS that introduced bugs that caused processors to remain idle even when there were threads available. Work by Lozi et al. has identified four bugs that were responsible for this behaviour. These bugs have remained hidden because while they corrode performance, they aren't obvious. They don't make programs freeze or crash and their effects only last a few hundred milliseconds at a time which is too short for common performance tools like \textbf{top} to detect. Lozi et al. designed new tools that observe the linux scheduler more closely. Using these tools helped these researches locate the problems.~\cite{Lozi:2016}.
 
-\subsubsection{Shuffler}
+In order to understand these bug fixes, as described in Lozi et al., we will explain a simplified version of the CFS load balancer.
+
+\subsection{Bugs Fixes for the CFS}
+\label{sec:cfsbugs}
+
+
+
+\subsubsection{The Group Imbalance bug}
+\label{sec:cfsfault_grpimbalance}
+
+This bug was first encountered in the wild when the researchers were compiling the Linux kernel with \textbf{make} on 64 cores and also had two R programs running, each of which was launched from different ssh connections on 3 different ttys.
+
+\todo[inline]{I've only just realized that Lozi doesn't mention locks or lock contention. This is interesting. I believe then that the solutions to the bugs found in Lozi are more general use case efficiency improvements to the standard CFS and the new developments I intended to write about in the METHODS section specifically optimize problems that utilize parallel programming practices (because they use locks more frequently). These are two related, but different, problems. Lozi does include a solution to the problems that they found, and so PERHAPS I should cut out one of the sections that I have not yet completed in Methods and replace it with the solutions proposed in Lozi. I need to read further and discuss this. Also, since Lozi doesn't mention lock contention, I will need to find another way to fit it in to the background section."}
+\todo[inline]{I have restructured my paper as such, the results and problem from Lozi is interesting.}
+
+\subsubsection{The Scheduling Group Construction bug}
+\label{sec:cfsfault_grpconstruct}
+
+\subsubsection{The Overload-on-Wakeup bug}
+\label{sec:cfsfault_overload}
+
+\subsubsection{The Missing Scheduling Domains bug}
+\label{sec:cfsfault_missingsched}
+
+\subsection{Shuffler}
 \label{sec:shuffler}
+
+The CFS doesn't differentiate between threads of a single-threaded program versus the threads of a multithreaded program. This prevents the scheduler from using that metadata in it's thread distribution mechanism. The following thread scheduler improve upon this.
 
 Performance of multithreaded applications on multicore multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework does this by the following. First we find the expected arrival time of locks on threads. Then we sort these threads by their expected arrival times and group them in as many groups as there are processors. Then we distribute these groups of threads to their own respective processors. The migration of threads between processors is costly, but the threads that are contending for locks during that time are not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than it's data and the lock. This will be shown in the Performance section.~\cite{KumarEtal:2014}
 
@@ -150,13 +168,10 @@ On an iteration of the shuffling procedure (every 500 ms), shuffling checks to m
 	as presented in Kumar et al.}\label{euclid}\label{alg:shuffler}
 \end{algorithm}
 
-\subsubsection{Jumbler}
-\label{sec:jumbler}
+\subsubsection{Shuffler Performance}
+\label{sec:shuf_performance}
 
-
-
-\subsubsection{Shuffler and Jumbler Performance}
-\label{sec:sj_performance}
+Kumar et al. defines LLC miss rate as the last level cache misses per thousand instructions (MPKI).~\cite{KumarEtal:2014}.
 
 We studied the lock times of 33 programs on a 64-core, 4-processor machine running Oracle Solaris 11. We identified 20 of those programs that experienced overall high lock times and used those programs to compare shuffling versus the standard scheduler.~\cite{KumarEtal:2014}
 
