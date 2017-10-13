@@ -84,7 +84,7 @@ In order for scheduler to work on multiple cores, each core must have it's own r
 Our recent experience with the Linux scheduler revealed that the pressure to work around the challenging properties of modern hardware, such as non-uniform memory access latencies (NUMA), high costs of cache coherency and synchronization, and diverging CPU and memory latencies, resulted in a scheduler with an incredibly complex implementation. As a result, the very basic function of the scheduler, which is to make sure that runnable threads use idle cores, fell through the cracks.~\cite{Lozi:2016}
 \end{quote}
 
-Before we can meaningfully discuss these bugs, we must first understand how cache exists on most multi-processor multi-core systems and some related concepts.
+Before we can meaningfully discuss these bugs however, we must first understand how cache exists on most multiprocessor multicore systems and some related system concepts.
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
@@ -92,7 +92,6 @@ Before we can meaningfully discuss these bugs, we must first understand how cach
 When a program is running, memory is stored in the RAM. The RAM exists a far ways away from the CPU relative to the cache. Imagine we had a program that sums up one million integers and they all fit in to RAM. It would be very slow for the CPU to request from the RAM every single integer one at a time. Cache allows us to speed up this process by migrating a chunk of data that the system predicts will be used frequently and moves it from the RAM into cache.
 
 In a \emph{non-uniform memory access (NUMA)} system  there are many levels of cache and they exist in a hierarchy. At the lowest level, is a grouping of some amount of cores that together create a \emph{NUMA node}. The size of the grouping depends on the hardware. On the machine used in Lozi et al. there were 32 cores, 8 cores per NUMA node. See Figure~\ref{fig:NUMA}.~\cite{Lozi:2016} NUMA nodes are the most atomic level of cache present on a modern computing system that employs NUMA. Systems can have many levels of cache. The \emph{last level cache (LLC)} is labeled L1 and larger cache in the hierarchy are L2, L3, etc.. NUMA nodes are L1 cache and are Last level cache. Last level cache has the fastest data lookup times from a core because it is located nearer to the CPU. If a unit of cache is not found in L1 cache, it is called an \emph{LLC cache miss} and the data is searched for in the next level of cache. If the data can not be found in any level of cache it is just called an \emph{LLC cache miss}, and external memory is consulted for the data. Moving data closer to the CPU improves \emph{locality} because it makes the data more "local" to where it needs to be. Improving locality improves performance because the system works less hard to load the data it needs.~\cite{WikiCache}
-
 
 \begin{figure}
 \centering
@@ -104,6 +103,8 @@ In a \emph{non-uniform memory access (NUMA)} system  there are many levels of ca
 \subsection{Locks and Lock contention}
 \label{sec:locks}
 
+\todo[inline]{Fill out}
+
 \section{Methods}
 \label{sec:methods}
 
@@ -112,14 +113,29 @@ So far we've established what threads are, how cache works and where it resides 
 \subsection{Load Balancing the CFS}
 \label{sec:loadbalance}
 
-As we mentioned in Section \ref{sec:cfs}, modifications were made to the CFS that introduced bugs that caused processors to remain idle even when there were threads available. Work by Lozi et al. has identified four bugs that were responsible for this behaviour. These bugs have remained hidden because while they corrode performance, they aren't obvious. They don't make programs freeze or crash and their effects only last a few hundred milliseconds at a time which is too short for common performance tools like \textbf{top} to detect. Lozi et al. designed new tools that observe the linux scheduler more closely. Using these tools helped these researches locate the problems.~\cite{Lozi:2016}.
+As we mentioned in Section \ref{sec:cfs}, modifications were made to the CFS that introduced bugs that caused processors to remain idle even when there were threads available. Work by Lozi et al. has identified four bugs that were responsible for this behaviour. These bugs have remained hidden because while they corrode performance, they aren't obvious. They don't make programs freeze or crash and their effects only last a few hundred milliseconds at a time which is too short for common performance tools like \textbf{top} to detect. Lozi et al. designed new tools that observe the linux scheduler more closely. Using these tools helped these researches locate the problems.~\cite{Lozi:2016}
 
-In order to understand these bug fixes, as described in Lozi et al., we will explain a simplified version of the CFS load balancer.
+In order to understand these bug fixes, as described in Lozi et al., we must explain a simplified version of the CFS load balancer.~\cite{Lozi:2016}
 
-\subsection{Bugs Fixes for the CFS}
+\subsubsection{Load Metric}
+\label{sec:loadmetric}
+
+The load balancing algorithm tracks a metric called \emph{load} to best distribute threads to cores. Defining what load should be is tricky. Balancing load such that each core has the same amount of threads is not ideal because threads have priorities, and if all of the high priority threads happened to be placed on one core while all low priority threads were placed on another, the low priority threads would be receiving much more runtime than they should be relative to the high priority threads. Balancing load such that each core has roughly the same amount of weights is not ideal either because if there was one thread that was nine times more important than nine low priority threads, that important thread would be left on a core all alone. That seems acceptable, but consider if that high priority thread sleeps a lot. It's core would be idle that whole time and would need to ask other cores for more work to keep busy in the downtime which is an expensive operation.~\cite{Lozi:2016}
+
+The current implementation of CFS uses a combination of a thread's weights and average CPU use divided by the amount of all threads in the parent process for the load metric. It divides by the amount of all threads in the parent process in order to remain fairness so that two processes that have different amounts of threads of the same priority still get equal runtime.~\cite{Lozi:2016}
+
+\subsubsection{Load Balancing Algorithm}
+\label{sec:loadbalancealg}
+
+Cores exist in the hierarchy where each level is called a \emph{scheduling domain}. The groups within each level are based on how cores share resources with the machine. The lowest level of scheduling domain is a single core. In the machine previously described in Section~\ref{sec:cache} there were 32 cores (first level), 4 NUMA nodes (second level), the third level was formed by groupings of nodes that are within 1 hop of eachother, and the final level is all of the nodes as one unit.
+The Load balancing algorithm is run for each scheduling domain starting at the first level's scheduling domain and ending on the final level's scheduling domain. One core per scheduling domain is responsible for performing the load balancing for that domain.
+
+\todo[inline]{finish}
+
+\subsection{Bugs and Fixes for the CFS}
 \label{sec:cfsbugs}
 
-
+Now that we know how the load balancer functions, we will now dive into the bugs that occur as a result of the complex, strict requirements that have built up over time on the CFS.
 
 \subsubsection{The Group Imbalance bug}
 \label{sec:cfsfault_grpimbalance}
@@ -127,16 +143,24 @@ In order to understand these bug fixes, as described in Lozi et al., we will exp
 This bug was first encountered in the wild when the researchers were compiling the Linux kernel with \textbf{make} on 64 cores and also had two R programs running, each of which was launched from different ssh connections on 3 different ttys.
 
 \todo[inline]{I've only just realized that Lozi doesn't mention locks or lock contention. This is interesting. I believe then that the solutions to the bugs found in Lozi are more general use case efficiency improvements to the standard CFS and the new developments I intended to write about in the METHODS section specifically optimize problems that utilize parallel programming practices (because they use locks more frequently). These are two related, but different, problems. Lozi does include a solution to the problems that they found, and so PERHAPS I should cut out one of the sections that I have not yet completed in Methods and replace it with the solutions proposed in Lozi. I need to read further and discuss this. Also, since Lozi doesn't mention lock contention, I will need to find another way to fit it in to the background section."}
-\todo[inline]{I have restructured my paper as such, the results and problem from Lozi is interesting.}
+\todo[inline]{I have restructured my paper as such, the results and problems from Lozi are interesting.}
+
+~\cite{Lozi:2016}
 
 \subsubsection{The Scheduling Group Construction bug}
 \label{sec:cfsfault_grpconstruct}
+
+
 
 \subsubsection{The Overload-on-Wakeup bug}
 \label{sec:cfsfault_overload}
 
 \subsubsection{The Missing Scheduling Domains bug}
 \label{sec:cfsfault_missingsched}
+
+This bug is actually something that was already fixed but regressed on Linux kernel version 3.19 (and later) when an important line of code was removed in a refactor that causes the system to misrepresent the amount of scheduling domains that are available for assigning threads to. This ended up causing load balancing to never happen, meaning processes, subprocesses and their threads stop looking for other NUMA nodes to assign themselves to, and nodes that don't have any threads will never receive threads and nodes that do have threads will accumulate all of the spawned threads.
+
+While rare (the bug required that one of the cores become disabled and re-enable) reintroducing the removed line of code increased efficiency in a tested program by a maximum of 138 times more efficient.~\cite{Lozi:2016}
 
 \subsection{Shuffler}
 \label{sec:shuffler}
@@ -168,6 +192,8 @@ On an iteration of the shuffling procedure (every 500 ms), shuffling checks to m
 	as presented in Kumar et al.}\label{euclid}\label{alg:shuffler}
 \end{algorithm}
 
+Now that we know how the Shuffling Framework works, let's review the results that implementing it gives us.
+
 \subsubsection{Shuffler Performance}
 \label{sec:shuf_performance}
 
@@ -175,10 +201,15 @@ Kumar et al. defines LLC miss rate as the last level cache misses per thousand i
 
 We studied the lock times of 33 programs on a 64-core, 4-processor machine running Oracle Solaris 11. We identified 20 of those programs that experienced overall high lock times and used those programs to compare shuffling versus the standard scheduler.~\cite{KumarEtal:2014}
 
+\todo[inline]{expand, relay more results! Transition cleanly.}
 
 
 \subsection{FLSCHED for Xeon Phi Manycore Processor}
 \label{sec:flsched}
+
+\todo[inline]{I feel like this source is relevant because it details thread scheduler efficiency improvements for a unique multicore processor. But it is not a multiprocessor.  Multiprocessor is in the title of my paper. Should I still use this source? I think the results sound fascinating and I'm really excited to write about it. Should I adapt the title of my paper to exclude the assumption of multiproccessing? The topic should still be pretty specific even with that change.}
+
+\todo[inline]{write section..}
 
 [Body text]
 
@@ -197,6 +228,7 @@ We studied the lock times of 33 programs on a 64-core, 4-processor machine runni
 \label{sec:conclusions}
 
 [Conclusion text]
+\todo[inline]{After other sections are done write conclusions and introduction.}
 
 \section*{Acknowledgments}
 \label{sec:acknowledgments}
