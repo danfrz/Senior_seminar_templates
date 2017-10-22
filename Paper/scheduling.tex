@@ -24,7 +24,7 @@
 %%% REMEMBER TO CHANGE THE SEMESTER AND YEAR AS NEEDED
 \conferenceinfo{UMM CSci Senior Seminar Conference, December 2017}{Morris, MN}
 
-\title{Thread Scheduler Efficiency Improvements for Multiprocessor Multicore Systems [Draft]}
+\title{Thread Scheduler Efficiency Improvements \\ for Multicore Systems [Draft]}
 
 \numberofauthors{1}
 
@@ -59,7 +59,7 @@ Thread scheduling is a problem that has been around since the 1960's. In the 200
 \section{Background}
 \label{sec:bg}
 
-In this Section we will broadly establish how threading, scheduling and caching works. We will establish causes of cache misses in the execution of programs mediated by the current implementation of thread scheduler written for Linux. We will establish information necessary to understand the recent developments made to improve thread scheduling for multiprocessor multicore non-uniform memory access systems. The first method/solution to these performance problems depend on understanding three flaws in the current implementation of the load balancer for the Linux thread scheduler. The other two solutions depend on reducing lock contention between threads via scheduling.
+In this Section we will broadly establish how threading, scheduling, and caching works. We will establish causes of cache misses in the execution of programs mediated by the current implementation of thread scheduler written for Linux. We will establish information necessary to understand the recent developments made to improve thread scheduling for multiprocessor multicore non-uniform memory access systems. The first method/solution to these performance problems depend on understanding three flaws in the current implementation of the load balancer for the Linux thread scheduler. The other two solutions depend on reducing lock contention between threads via scheduling.
 
 \subsection{Threads and Scheduling}
 \label{sec:threads}
