@@ -1,0 +1,40 @@
+Talk Outline
+
+
+Establish the topic and where we're going with it.
+
+Establish needed concepts
+	What's a Thread!
+		What does a program that is multi-threaded look like?
+
+	What is parallelism?
+		What does a program that is highly parallel look like?
+
+Thread scheduling and load-balancing on Linux
+		Completely Fair Scheduler (CFS)
+		Cache and scheduling domains on NUMA systems/
+		Load balancing algorithm for CFS
+	
+Transition: Frequent important scheduler requirement changes caused by new hardware lead to a scheduler with incredible complexity. (reword)
+
+Four bugs in the load balancer, fixing them improves efficiency
+	Group Imbalance bug
+	Scheduling Group Construction bug
+	Overload-on-Wakeup bug
+	Missing Scheduling Domains bug
+	
+Transition/Lemma: Introduce Locks and how lock contention is a problem
+for efficiency on multicore systems. Introduce concept of locality (locality)
+
+FLSCHED: The lockless thread scheduler
+	What is the Xeon Phi manycore processor?
+	What problem did the researchers find?
+	How FLSCHED improves the problem / Results
+
+Transition/Lemma: Establish how a multi-processor multicore system differs from a single-processor multicore system
+	
+Shuffler: Cache locality improvements via thread migration
+	How Shuffler goes about thread migration and how it improves locality
+	Shuffler Results
+
+
