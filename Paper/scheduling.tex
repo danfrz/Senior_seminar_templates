@@ -54,44 +54,44 @@ Daniel C. Frazier\\
 \section{Introduction}
 \label{sec:intro}
 
-Thread scheduling is a problem that has been around since the 1960's. In the 2000's the problem was considered solved but with the emergent popularity of multiprocessor multicore systems the problem space has become considerable more complex. This paper will describe some issues currently present in the Linux scheduler as well as three recent developments that substantially improve the efficiency of average programs but for certain programs improves efficiency by up to 138 times.
+Thread scheduling is a problem that has been around since the 1960's. Thread scheduling was thought to be solved in the early 2000s; however, with the rising popularity of multiprocessor and multicore systems, and rapidly developing requirements --- the problem space has become considerably more complex. This paper will describe some issues currently present in the Linux scheduler as well as three recent developments that substantially improve the efficiency of average programs and improve efficiency for certain programs by up to 138 times.~\cite{Lozi:2016}
 
 \section{Background}
 \label{sec:bg}
 
-In this Section we will broadly establish how threading, scheduling, and caching works. We will establish causes of cache misses in the execution of programs mediated by the current implementation of thread scheduler written for Linux. We will establish information necessary to understand the recent developments made to improve thread scheduling for multiprocessor multicore non-uniform memory access systems. The first method/solution to these performance problems depend on understanding three flaws in the current implementation of the load balancer for the Linux thread scheduler. The other two solutions depend on reducing lock contention between threads via scheduling.
+In this section we will broadly establish how threading, scheduling, and caching works. We will establish causes of cache misses in the execution of programs using the current Linux thread scheduler. We will establish information necessary to understand the recent developments made to improve thread scheduling for multiprocessor and multicore systems. The first improvement to these performance problems depends on understanding four flaws in the current implementation of the load balancer for the Linux thread scheduler~\cite{Lozi:2016}. The other two solutions involve reducing lock contention between threads by employing new scheduling techniques~\cite{KumarEtal:2014,HeeseungEtal:2017}.
 
 \subsection{Threads and Scheduling}
 \label{sec:threads}
-Using any modern computer, there is an expectation that the operating system is running at all times (largely in the background) and that multiple different user programs and system programs should be able to run concurrently. Modern computer programs also often need to run more than one independent task at one time. This can be accomplished by employing \emph{threads}, or equivalently, making the program \emph{multithreaded}. Programs that involve long independent computations or programs with a graphical interface often benefit from employing threads.
+Using any modern computer, there is an expectation that the operating system is running at all times (largely in the background) and that multiple user programs and system programs should be able to run concurrently. Modern computer programs also often need to run more than one independent task at one time. This can be accomplished by employing \emph{threads}, or equivalently, making the program \emph{multithreaded}. Programs that involve long independent computations or programs with a graphical interface often benefit from employing threads.
 
-For an example, in the case of image editing software, say you are working on a large picture and decide to perform an expensive filtering operation. If the program wasn't multithreaded, the user interface and the filter operation would be executed in the same thread (same \emph{context}). When you instruct the program to execute the filter, the user interface wouldn't be able to respond to any events (like clicking the mouse) until the filter operation was finished. To make the program more responsive, separate the user interface into its own thread and employ more threads when the user initiates an expensive function.
+For an example, in the case of image editing software, say you are working on a large picture and decide to perform an expensive filtering operation. If the program wasn't multithreaded, the user interface and the filter operation would be executed in the same thread (same \emph{context}). When you instruct the program to execute the filter, the user interface wouldn't be able to respond to any events (like clicking the mouse) until the filter operation was finished. To make the program more responsive, separate the user interface into its own thread and employ more threads when the user initiates an expensive operation.
 	
-Threads are tied to the processes that spawn them. A process always has at least one thread. Processes are typically independant of each other while threads exist within a process. \emph{Context switching} within a CPU is the process of storing and restoring the state of a process or thread so that execution can be paused or resumed.~\cite{WikiContext}. Context switching is typically faster for threads than processes because most of the state information between threads in a process is the same~\cite{WikiThreads}. 
+Threads are tied to the processes that spawn them. A process always has at least one thread. Processes are typically independant of each other while threads exist within a process. \emph{Context switching} within a CPU is the process of storing and restoring the state of a process or thread so that execution can be paused or resumed. A processes state consists of resources that each of its threads should have access to. These resources are: compiled code and data, sockets, file handles, and logistical information stored in the \emph{process control block} such as processor privileges and what IO devices have been allocated to this process ~\cite{WikiThreads,WikiProcessControlBlock}. A threads state consists of a stack, a clone of the CPUs registers, and on some systems extra storage for thread-local global variables~\cite{WikiThreads,WikiThreadLocalStorage}. Context switching is typically fastest between threads within a process because a bulk of the data that needs to be available, the resources, is already available.~\cite{WikiThreads} 
 
-The scheduler is the part of the operating system that is responsible for managing and distributing the CPU runtime that each of these processes and their respective threads receive. New threads and processes are added to the scheduler when they are made~\cite{Lozi:2016}.
+The ~\emph{scheduler} is the part of the operating system that is responsible for managing and distributing the CPU runtime that each of these processes and their respective threads receive. New threads and processes are added to the scheduler when they are made.~\cite{Lozi:2016}
 
 \subsection{Completely Fair Scheduler (CFS)}
 \label{sec:cfs}
 
 Scheduler implementations vary per operating system. The scheduler used in Linux is called the Completely Fair Scheduler (CFS.) We will discuss the CFS as presented in Lozi et al.~\cite{Lozi:2016}. The CFS is an implementation of the weighted fair queuing (WFQ) scheduling algorithm. The goal of the WFQ is to divide available CPU cycles among threads, prioritizing more cycles for threads with larger weights.
 
-Threads that are running accumulate \emph{vruntime}, which is the runtime of a thread divided by it's weight. Once a thread's vruntime is greater than the amount of runtime that the thread was scheduled for and there is another thread waiting to take this thread's place, the running thread is preempted from the CPU. A thread may also become preempted if another thread with a smaller vruntime awakens. Threads are organized in a red-black tree called a \emph{runqueue} in which the leftmost node is always the thread with the smallest vruntime.~\cite{Lozi:2016}
+Threads that are running accumulate \emph{vruntime}, which is the runtime of a thread divided by it's weight. Once a thread's vruntime is greater than the amount of runtime that the thread was scheduled for and there is another thread waiting to take this thread's place, the running thread is preempted from the CPU. A thread may also become preempted if another thread with a smaller vruntime awakens. Threads are organized in a priority queue called a \emph{runqueue}. This priority queue implementation uses a self-balancing binary tree called a red-black tree in which the nodes are threads and the leftmost node is always the thread with the smallest vruntime.~\cite{Lozi:2016}
 
-In order for scheduler to work on multiple cores, each core must have it's own runqueue. If all cores shared one runqueue, each core would need to frequently make expensive calls for thread context information from other cores.~\cite{Lozi:2016}. For the scheduler to function properly and efficiently, it must keep each of the runqueues balanced to minimize expensive external calls and maximize the use of available cores. Most schedulers, including the CFS, run a load balancing algorithm that tries its best to keep runqueues balanced. Load balancing was simple for single-core systems but with multi-core systems, bugs have found there way into the system and persist even until today as illustrated in the following quote:
+In order for the scheduler to work on multiple cores, each core must have it's own runqueue. If all cores shared one runqueue, each core would need to make frequent synchronous requests for process and thread state information from other cores.~\cite{Lozi:2016} For the scheduler to function properly and efficiently, it must keep each of the runqueues balanced. If runqueues aren't balanced, then a core is left idle and needs to request work from another core to keep busy. External calls between cores are expensive and should be minimized. Most schedulers, including the CFS, run a load balancing algorithm that tries its best to keep runqueues balanced. Load balancing was simple for single-core systems but with multi-core systems, bugs have found their way into the system and persist even until today:
 
 \begin{quote}
-Our recent experience with the Linux scheduler revealed that the pressure to work around the challenging properties of modern hardware, such as non-uniform memory access latencies (NUMA), high costs of cache coherency and synchronization, and diverging CPU and memory latencies, resulted in a scheduler with an incredibly complex implementation. As a result, the very basic function of the scheduler, which is to make sure that runnable threads use idle cores, fell through the cracks.~\cite{Lozi:2016}
+Our recent experience with the Linux scheduler revealed that the pressure to work around the challenging properties of modern hardware, such as non-uniform memory access latencies (NUMA), high costs of cache coherency and synchronization, ... resulted in a scheduler with an incredibly complex implementation. As a result, the very basic function of the scheduler, which is to make sure that runnable threads use idle cores, fell through the cracks.~\cite{Lozi:2016}
 \end{quote}
 
-Before we can meaningfully discuss these bugs however, we must first understand how cache exists on most multiprocessor multicore systems and some related system concepts.
+Before we can meaningfully discuss these bugs however, we must first understand how cache exists on most multicore systems, how cache coherency and synchronous accesses effect performance, and a few other related system performance concepts.
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
 
-When a program is running, memory is stored in the RAM. The RAM exists a far ways away from the CPU relative to the cache. Imagine we had a program that sums up one million integers and they all fit in to RAM. It would be very slow for the CPU to request from the RAM every single integer one at a time. Cache allows us to speed up this process by migrating a chunk of data that the system predicts will be used frequently and moves it from the RAM into cache.
+When a program is running, memory is stored in the RAM. The RAM exists far away from the CPU relative to the cache. Imagine we had a program that sums up an array of one million integers and they all fit in to RAM. It would be very slow for the CPU to request from the RAM every single integer one at a time. Cache allows us to speed up this process by migrating a chunk of data that the system predicts will be used frequently, from the RAM into cache.
 
-In a \emph{non-uniform memory access (NUMA)} system  there are many levels of cache and they exist in a hierarchy. At the lowest level, is a grouping of some amount of cores that together create a \emph{NUMA node}. The size of the grouping depends on the hardware. On the machine used in Lozi et al. there were 32 cores, 8 cores per NUMA node. See Figure~\ref{fig:NUMA}.~\cite{Lozi:2016} NUMA nodes are the most atomic level of cache present on a modern computing system that employs NUMA. Systems can have many levels of cache. The \emph{last level cache (LLC)} is labeled L1 and larger cache in the hierarchy are L2, L3, etc.. NUMA nodes are L1 cache and are Last level cache. Last level cache has the fastest data lookup times from a core because it is located nearer to the CPU. If a unit of cache is not found in L1 cache, it is called an \emph{LLC cache miss} and the data is searched for in the next level of cache. If the data can not be found in any level of cache it is just called an \emph{LLC cache miss}, and external memory is consulted for the data. Moving data closer to the CPU improves \emph{locality} because it makes the data more "local" to where it needs to be. Improving locality improves performance because the system works less hard to load the data it needs.~\cite{WikiCache}
+In a \emph{non-uniform memory access (NUMA)} system there are many levels of cache and they exist in a hierarchy. At the lowest level, is a grouping of some amount of cores that together create a \emph{NUMA node}. The number of levels in a system's hierarchy depends on the hardware. On the machine used in Lozi et al. there were 32 cores, 8 cores per NUMA node. See Figure~\ref{fig:NUMA}.~\cite{Lozi:2016} NUMA nodes are the most atomic level of cache present on a modern computing system that employs NUMA. The \emph{last level cache (LLC)} is labeled L1 and larger caches in the hierarchy are L2, L3, etc. NUMA nodes are L1 cache and are last level cache. Last level cache has the fastest data lookup times from a core because it is located nearer to the CPU. If a unit of cache is not found in L1 cache, it is called an \emph{LLC cache miss} and the data is searched for in the next level of cache. If the data can not be found in any level of cache it is just called an \emph{cache miss} and external memory is consulted for the data. Moving data closer to the CPU improves \emph{locality} because it makes the data more ``local'' to where it needs to be. Improving locality improves performance because the system works less hard to load the data it needs.~\cite{WikiCache}
 
 \begin{figure}
 \centering
@@ -99,6 +99,8 @@ In a \emph{non-uniform memory access (NUMA)} system  there are many levels of ca
 \caption{32-core machine with four NUMA nodes. It only takes two hops to get from any core to another node. The shades represent scheduling domains relative to the first core.  From Lozi et al.~\cite{Lozi:2016}}
 \label{fig:NUMA}
 \end{figure}
+
+\emph{Cache coherency} is necessary for a system to cache properly. ~\cite{Systems}
 
 \subsection{Locks and Lock contention}
 \label{sec:locks}
@@ -108,7 +110,7 @@ In a \emph{non-uniform memory access (NUMA)} system  there are many levels of ca
 \section{Methods}
 \label{sec:methods}
 
-So far we've established what threads are, how cache works and where it resides on NUMA systems, how the CFS scheduler works. Now, we will discuss three bugs we found in the CFS load balancer, and their fixes which substantially improved scheduler efficiency. Later, we will show two more solutions that improve efficiency for certain kinds of programs running on multiprocessor multicore NUMA systems.
+So far we've established what threads are, how cache works and where it resides on NUMA systems, how the CFS scheduler works. Now, we will discuss three bugs Lozi et al. found in the CFS load balancer and their fixes, which substantially improved scheduler efficiency. Later, we will show two more solutions that improve efficiency for certain kinds of programs running on multiprocessor multicore NUMA systems.
 
 \subsection{Load Balancing the CFS}
 \label{sec:loadbalance}
@@ -216,7 +218,7 @@ We studied the lock times of 33 programs on a 64-core, 4-processor machine runni
 \subsubsection{Lockless Thread Scheduler}
 \label{sec:flsched_about}
 
-\cite{Lozi:2016, NisarEtal:2017}
+\cite{Lozi:2016, HeeseungEtal:2017}
 ~\cite{KumarEtal:2014}
 
 \subsubsection{FLSCHED Perfomance}
@@ -238,11 +240,8 @@ We studied the lock times of 33 programs on a 64-core, 4-processor machine runni
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
 \bibliographystyle{abbrv}
-% sample_paper.bib is the name of the BibTex file containing the
-% bibliography entries. Note that you *don't* include the .bib ending here.
 \bibliography{scheduling}  
-% You must have a proper ".bib" file
-%  and remember to run:
+% Remember to run:
 % latex bibtex latex latex
 % to resolve all references
 
