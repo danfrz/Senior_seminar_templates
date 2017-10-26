@@ -11,6 +11,28 @@
 \usepackage{color}
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage{algorithm2e}
+\usepackage{listings}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\tiny\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
 
 %%%%% Uncomment the following line and comment out the previous one
 %%%%% to remove all comments
@@ -112,7 +134,61 @@ An important property of a system that employs cache is that it should be \emph{
 \subsection{Synchronicity, Locks and Lock Contention}
 \label{sec:locks}
 
+When two contexts have read and write access to the same portion of the memory, any read or write to that memory must be made synchronous to avoid race conditions. A race condition is a timing dependent error where two threads updating the same memory at the same time overwrite eachother in a way that might cause the threads to function incorrectly.~\cite{Systems} A system can be made synchronous by employing \emph{locks}. Principles of Computer System Design by Saltzer and Kaashoek define locks as ``A flag associated with a data object, set by a thread to warn concurrent threads that the object is in use and that it may be a mistake for other threads to read or write it.'' ~\cite{Systems}
+See figure \ref{fig:locks} for an example employing synchronization. The \emph{synchronized} keyword in java implicitly employs locks so that no reads or writes can be made to the object that was synchronized until the first synchronized block ends. \todo[inline]{In this code, self.wait() happens within the synchronized block, so wouldn't processing still be "inside" the synchronized wait block while notify needed to happen in another synchronized block? I need to look into synchronized further. I think I should include an example with less ceremony: a non-graphical program.}
 
+\begin{figure}
+\begin{lstlisting}
+public static void main(String[] args) throws InterruptedException
+{
+    GUIProgram program = new GUIProgram();
+    String fromGUI = program.getStringFromGUI();
+    System.out.println("Received String: " + fromGUI);
+}
+
+public static class GUIProgram {
+    public String getStringFromGUI() throws InterruptedException
+    {
+        //Get a reference to this GUIProgram instance to use as the
+        //data object whose access should be synchronized.
+        GUIProgram self = this;
+
+        //Create a graphical window
+        JFrame window = new JFrame("Enter text and press Enter");
+        Container container = window.getContentPane();
+
+        //Add an event to a textbox where when Enter is pressed, it
+        //notifies any waiting threads to begin execution again.
+        //The actionPerformed event occurs in a GUI thread.
+        JTextField textbox = new JTextField();
+        textbox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                synchronized (self)
+                {
+                    self.notify();
+                }
+            }
+        });
+
+        container.add(textbox);
+        window.pack();
+
+        //Set visibile starts up the GUI thread for the JFrame window
+        window.setVisible(true);
+
+        System.out.println("Waiting for Enter to be pressed");
+        //Wait until the textbox event notifies this GUIProgram instance
+        synchronized (self) {
+            self.wait();
+        }
+        return textbox.getText();
+    }
+}
+\end{lstlisting}
+\caption{Example Java GUI program employing threads and synchronization with locks.}
+\label{fig:locks}
+\end{figure}
 
 
 
