@@ -96,7 +96,7 @@ The ~\emph{scheduler} is the part of the operating system that is responsible fo
 \subsection{Completely Fair Scheduler (CFS)}
 \label{sec:cfs}
 
-Scheduler implementations vary per operating system. The scheduler used in Linux is called the Completely Fair Scheduler (CFS). We will discuss the CFS as presented in Lozi, Lepers, Funston, Gaud, Qu\'ema and Fedorova~\cite{Lozi:2016}. The CFS is an implementation of the weighted fair queuing (WFQ) scheduling algorithm. The goal of the WFQ is to divide available CPU cycles among threads, prioritizing more cycles for threads with larger weights.
+Scheduler implementations vary per operating system. The scheduler used in Linux is called the Completely Fair Scheduler (CFS). The CFS was introduced as the default scheduler in version 2.6.23 of the Linux kernel.~\cite{HeeseungEtal:2017} We will discuss the CFS as presented in Lozi, Lepers, Funston, Gaud, Qu\'ema and Fedorova~\cite{Lozi:2016}. The CFS is an implementation of the weighted fair queuing (WFQ) scheduling algorithm. The goal of the WFQ is to divide available CPU cycles among threads, prioritizing more cycles for threads with larger weights.~\cite{Lozi:2016}
 
 Threads that are running accumulate \emph{vruntime}, which is the runtime of a thread divided by its weight. Once a thread's vruntime is greater than the amount of runtime that the thread was scheduled for and there is another thread waiting to take this thread's place, the running thread is preempted from the CPU. A thread may also become preempted if another thread with a smaller vruntime awakens. Threads are organized in a priority queue called a \emph{runqueue}. This priority queue implementation uses a self-balancing binary tree called a red-black tree in which the nodes are threads and the leftmost node is always the thread with the smallest vruntime.~\cite{Lozi:2016}
 
@@ -112,6 +112,8 @@ Before we can meaningfully discuss these bugs, we must first understand how and 
 
 \todo[inline]{RIGHT Each group of n cores is a scheduling domain, and as such, a processor and groups of processors can be scheduling domains, which the CFS/Load balancer algorithms do support. I'm still not entirely clear on which cache tends to reside, though.
 }
+
+\todo[inline]{Other sources insist that the CFS is state-of-the-art but mostly use that fact in comparison to their own algorithms, should clarify that the CFS, while it has problems is still good for the job it was set out to do.}
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
@@ -314,21 +316,24 @@ We just saw that lock contention is a problem for multithreaded parallel program
 \subsection{FLSCHED for Xeon Phi Manycore Processor}
 \label{sec:flsched}
 
-Manycore processors continue become more powerful and as such, more popular. The latest manycore processor as of September 2 2017, the Xeon Phi, has up to 76 physical cores and each core has small cache. The amount of cores a processor has is expected to increase given the popularity and importance of highly-parallel algorithms such as machine learning. The CFS was not built for this degree of parallelism. The cost of context switching continues to increase with new technology~\cite{HeeseungEtal:2017}.
-
-\todo[inline]{write section..}
+Manycore processors continue become more powerful and as such, more popular. The latest manycore processor as of September 2 2017, the latest version of Xeon Phi, has up to 76 physical cores where each core has small cache. The amount of cores a processor has is expected to increase given the popularity and importance of highly-parallel algorithms such as machine learning. The CFS was not built for this degree of parallelism. As the number of cores increase the negative impact of lock contention on the scheduler performance increases exponentially. As well, the cost of context switching continues to increase as hardware becomes capable of solving larger problems. The context switch overhead for the Xeon Phi is larger than usual processors because it contains additional vector-processing register sets. \cite{HeeseungEtal:2017} A machine that supports vector processing allows one to perform instructions on vectors of data rather than scalars~\cite{Mellon}. The Xeon Phi comes in many sizes. The Xeon Phi processor used by FLSCHED researchers Jo, Kang, Min, and Kim had 57 cores. ~\cite{HeeseungEtal:2017}
 
 \subsubsection{Lockless Thread Scheduler}
 \label{sec:flsched_about}
 
-\cite{Lozi:2016, HeeseungEtal:2017}
-~\cite{KumarEtal:2014}
+The design goals for the CFS differ from the FLSCHED. The CFS was designed with different requirements in mind than FLSCHED. The CFS was designed with responsiveness, fairness and load-balancing in mind because it was intended for Desktop and Server use. The FLSCHED was designed strictly with efficiency in mind so responsiveness and fairness are not important. A great deal of state information is considered in the choice of what threads run and when. With the FLSCHED intended for manycore parallel machines, it's more impactful to simply make descisions faster rather than more decidedly.~\cite{HeeseungEtal:2017}
+
+The CFS implementation has 11 locks which are used for load balancing mechanisms, runqueue management, runtime statistics updates, and addition scheduler features. FLSCHED removes runtime statistics entirely from the scheduler because it does not depend on them to make decisions. FLSCHED does not use periodic load balancing, does not provide the feature to limit maximum CPU bandwidth, nor any of the CFS group features. While the FLSCHED does substitute for the CFS, it does still run on top of the scheduler core which has locks. Context switches on FLSCHED must be requested by setting a bit in the scheduler. Responses to context switch requests are delayed on purpose to minimize the number of context switches.~\cite{HeeseungEtal:2017}
+
+Timeslices in FLSCHED are assigned Round-Robin. The only managed scheduling information is the timeslices that threads receive. Thread preemption in FLSCHED mostly occurs because there is another thread with a higher priority. Rather than immediately preempting the running thread to replace with the new thread, FLSCHED reorders runqueues such that the higher priority thread will come next after a normal task switch.~\cite{HeeseungEtal:2017}
+
 
 \subsubsection{FLSCHED Perfomance}
 \label{sec:flsched_performance}
 
-[Body text]
 
+
+\cite{HeeseungEtal:2017}
 \section{Conclusions}
 \label{sec:conclusions}
 
