@@ -187,7 +187,7 @@ public static class GUIProgram {
 \end{figure}
 
 %https://computing.llnl.gov/tutorials/pthreads/ If I want to go the mutex route.
-\todo[inline]{I was planning on referring to Figure~\ref{fig:locks} in this Section but I am not satisfied with this example yet. For one, it contains a lot of irrelevant java ceremony. It's really long. It also depends on knowing java features that \emph{implicitly} call the concepts we're talking about, not explicitly (e.g. setVisible starting the GUI thread). Should I try an example using mutex and pthreads in C? typedef mutex to ``lock''...? But pthreads \emph{also} require a lot of ceremony. Perhaps I should stick to an example in pseudocode... Maybe there is a better example that doesn't use GUI in java, a parallel program. If I do include a Java example I should keep the last paragraph about synchronized, otherwise it would not be relevant to the rest of the paper.}
+\todo[inline]{I was planning on referring to Figure~\ref{fig:locks} in this Section but I am not satisfied with this example yet. For one, it contains a lot of irrelevant java ceremony. It's really long. It also depends on knowing java features that \emph{implicitly} call the concepts we're talking about, not explicitly (e.g. setVisible starting the GUI thread). Should I try an example using mutex and pthreads in C? typedef mutex to ``lock''...? But pthreads \emph{also} require some ceremony. Perhaps I should stick to an example in pseudocode? Maybe there is a better example that doesn't use GUI in java, a parallel program. If I do include a Java example I should keep the last paragraph about synchronized, otherwise it would not be relevant to the rest of the paper, would have to switch to explaining a mutex. I will look into finding a simple C parallel program which experiences lock contention.}
 
 \section{Methods}
 \label{sec:methods}
@@ -233,14 +233,17 @@ Now that we know how the load balancer functions, we will now dive into the bugs
 \label{sec:cfsfault_grpimbalance}
 
 This bug was first encountered when the researchers were compiling the Linux kernel with \textbf{make} on 64 cores and also had two R programs running, each of which was launched from different ssh connections on three different ttys. ~\cite{Lozi:2016}
+\todo[inline]{Make information relevant, actually cover the bug}
 
 \subsubsection{The Scheduling Group Construction bug}
 \label{sec:cfsfault_grpconstruct}
 
-
+\todo[inline]{explain the bug}
 
 \subsubsection{The Overload-on-Wakeup bug}
 \label{sec:cfsfault_overload}
+
+\todo[inline]{explain the bug}
 
 \subsubsection{The Missing Scheduling Domains bug}
 \label{sec:cfsfault_missingsched}
@@ -249,20 +252,14 @@ This bug is actually something that was already fixed but regressed on Linux ker
 
 This bug required that one of the cores become disabled and re-enabled. So while rare, reintroducing the removed line of code increased efficiency in a certain tested program by a maximum of 138 times.~\cite{Lozi:2016}
 
+\todo[inline]{Results?}
+
 \subsection{Shuffler}
 \label{sec:shuffler}
 
-\todo[inline]{Move lock contention definition here instead of in the synchronicity section. It's directly relevant here.}
+Research by Kumar, Rajiv, Laxmi and Bhuyan studied 20 certain parallel algorithms and found that with many of them, adding more threads began to degrade program performance rather than improve. The researchers monitored time spent acquiring locks and number of LLC misses experienced while running these programs. They identified the source of this problem to be \emph{lock contention}. Lock contention can be found in multithreaded programs where many threads compete for access to the same lock. Lock contention between threads in a program that reside on different processors leads to a higher than average LLC miss rate. This occurs because the thread requesting the lock also tends to be working on the same data, and the data would need to be refreshed on the requesting processor's cache if another processor had changed the data. If the threads of that multithreaded program were prioritized to be placed on one processor, then the program would experience a lower LLC miss rate. Neither the CFS nor the Solaris scheduler differentiate between threads of a single-threaded program versus the threads of a multithreaded program. This prevents the scheduler from using that metadata in its thread distribution mechanism. The following thread scheduler named \emph{Shuffler} by Kumar et al. takes this into account. The Shuffling framework was designed for multiprocessor multicore NUMA systems, and implemented on a 64-core 4-processor machine running Oracle Solaris 11.~\cite{KumarEtal:2014}
 
-The CFS does not differentiate between threads of a single-threaded program versus the threads of a multithreaded program. This prevents the scheduler from using that metadata in its thread distribution mechanism. The following thread scheduler named \emph{Shuffler} by Kumar, Rajiv, Laxmi and Bhuyan takes this into account.~\cite{KumarEtal:2014}
-
-Performance of multithreaded applications on multicore, multiprocessor systems with high lock contention is dependant on the distribution of those threads across processors. The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate threads to share processors. The Shuffling Framework operates by first finding the expected arrival time of locks on threads. Then it sorts these threads by their expected arrival times and groups them in as many groups as there are processors. It continues by distributing these groups of threads into its own respective processors. The migration of threads between processors is costly, but the threads that are contending for locks during that time are not doing any useful work anyway. In addition, contending threads that are co-located in one processor can share data much faster and avoid LLC misses. For these reasons it is preferable to migrate the whole thread rather than its data and the lock. This will be shown in the performance section.~\cite{KumarEtal:2014}
-
-For the first step of the algorithm, it finds the expected arrival time of threads. The \textit{lock time} of a thread is measured by the percent of time it spends waiting for locks. There exists a daemon thread that contains a data structure which maps threads to their lock times and processor ids. For the monitor, we must choose a rate to sample lock acquiring times at (lock arrival times) and a rate to perform thread migration (shuffling). Kumar et al. used prstat, a utility to report active processor statistics~\cite{prstat}, to monitor lock arrival times. They found that finer sampling rates allow for detailed monitoring but also more overhead. They also found that for sampling rates less than 200 ms, the overhead was significantly higher. For a lock sampling rate of 200 ms the process of sampling took less than 1\% system time. The Shuffling interval was chosen by experimentation. They tested various shuffling intervals on 20 programs and chose 500 ms.
-
-On an iteration of the grouping-forming procedure (every 200 ms), the daemon checks the total amount of time that was spent resolving locks on each thread and if that time exceeds a preset limit, then groups are formed again.
-
-On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they were assigned to do not migrate. If the way that threads interacted with eachother doesn't change, the shuffling step is effectively skipped.~\cite{KumarEtal:2014}
+The Shuffling approach is for the scheduling algorithm to take into account what threads are contending for locks on what processors and migrate \textbf{whole threads} (rather than lock and cache) such that they share processors. The Shuffling Framework operates as seen in Algorithm \ref{alg:shuffler}. Threads that are reported to have higher lock acquisition times are threads that are requesting locks from outside of their processor. These are the threads that should be migrated to share processors. Details on the shuffling framework are as follows.~\cite{KumarEtal:2014}
 
 \begin{algorithm}
 	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
@@ -278,28 +275,48 @@ On an iteration of the shuffling procedure (every 500 ms), shuffling checks to m
 	}			
 
 	\caption{The Shuffling Framework
-	as presented in Kumar et al.~\cite{KumarEtal:2014}}\label{euclid}\label{alg:shuffler}
+	as presented in Kumar et al.~\cite{KumarEtal:2014}}\label{alg:shuffler}\label{alg:shuffler}
 \end{algorithm}
+
+\begin{description}
+\item [Monitor Threads] \ \\
+First, we monitor the amount of time user threads spend acquiring locks and store it in a data structure. 
+
+\item [Form Thread Groups] \ \\
+If sampled lock times exceed a certain threshold, threads are sorted by their lock acquisition times and grouped by their order in the sorted data structure. There are as many groups as processors that will be used to run the program. This procedure is run every 200 ms to continue to form groups of threads that should share processors.
+
+\item [Perform Shuffling] \ \\
+On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they were assigned to do not migrate. If the way that threads interacted with eachother doesn't change, the shuffling step is effectively skipped.~\cite{KumarEtal:2014}
+\end{description}
 
 Now that we know how the Shuffling Framework works, let's review the results that implementing it gives us.
 
 \subsubsection{Shuffler Performance}
 \label{sec:shuf_performance}
 
-Kumar et al. defines LLC miss rate as the last level cache misses per thousand instructions (MPKI).~\cite{KumarEtal:2014}.
+Figure \ref{fig:shuf_performance} details the improvements that Shuffling made relative to the default Solaris scheduler and three other schedulers. A positive number denotes that that scheduler was that more efficient than the default Solaris scheduler for that program. Each of the programs are multithreaded. The one they highlight the most was the Body Tracking (BT) algorithm of whose performance improved by 54 percent.~\cite{KumarEtal:2014} Figure \ref{fig:shuf_vs_solaris} compares the efficiency of Shuffler versus Solaris for the 20 same multithreaded programs.
+\begin{figure}
+\centering
+\psfig{file=Performance_Shuffler.png,width =3in}
+\caption{Performance Improvements relative to Solaris across 20 multithreaded programs. From Kumar et al.~\cite{KumarEtal:2014}}
+\label{fig:shuf_performance}
+\end{figure}
 
-We studied the lock times of 33 programs on a 64-core, 4-processor machine running Oracle Solaris 11. We identified 20 of those programs that experienced overall high lock times and used those programs to compare shuffling versus the standard scheduler.~\cite{KumarEtal:2014}
+\begin{figure}
+\centering
+\psfig{file=SolarisVsShuffling.png,width =3in}
+\caption{Lock arrival times ranges with Solaris vs. Shuffling. From Kumar et al.~\cite{KumarEtal:2014}}
+\label{fig:shuf_vs_solaris}
+\end{figure}
 
-\todo[inline]{expand, relay more results! Transition cleanly.}
-
+We just saw that lock contention is a problem for multithreaded parallel programs. Next we will cover a scheduler that takes a different approach to alleviating the lock contention problem. The designers of FLSCHED claim it is lockless, reduces context switches, and makes more efficient scheduling decisions than CFS.~\cite{HeeseungEtal:2017}
 
 \subsection{FLSCHED for Xeon Phi Manycore Processor}
 \label{sec:flsched}
 
+Manycore processors continue become more powerful and as such, more popular. The latest manycore processor as of September 2 2017, the Xeon Phi, has up to 76 physical cores and each core has small cache. The amount of cores a processor has is expected to increase given the popularity and importance of highly-parallel algorithms such as machine learning. The CFS was not built for this degree of parallelism. The cost of context switching continues to increase with new technology~\cite{HeeseungEtal:2017}.
 
 \todo[inline]{write section..}
-
-[Body text]
 
 \subsubsection{Lockless Thread Scheduler}
 \label{sec:flsched_about}
