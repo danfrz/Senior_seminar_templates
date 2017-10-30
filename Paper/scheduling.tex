@@ -68,7 +68,9 @@ Daniel C. Frazier\\
 \todo[inline]{This is an incomplete Draft.}
 
 \begin{abstract}
-There are many potential choices of hardware for a given computational problem. The CPUs used on most modern systems employ multiple cores. Some newer systems, called manycore systems have upwards of 76 cores and increasing. Some systems have multiple processors, of which also have multiple cores. To take advantage of this hardware, independent program tasks (threads) should be distributed wisely. In this paper, we will cover important decisions that need to be made in order to make better decisions about how tasks are best allocated to these resources to maximize performance.
+There are many potential choices of hardware for a given computational problem. The CPUs used on most modern computing systems employ multiple cores. Some newer systems, called manycore systems have upwards of 76 cores and increasing. Some systems have multiple processors, of which also have multiple cores. To take advantage of this hardware, independent program tasks (threads) should be distributed wisely. In this paper, we will cover important decisions that need to be made in order to make better decisions about how tasks are best allocated to these resources to maximize performance.
+
+\todo[inline]{Definitely needs improvement.}
 \end{abstract}
 
 \keywords{Scheduling; thread migration; multicore; multiprocessing; lock contention; last-level cache misses}
@@ -76,7 +78,7 @@ There are many potential choices of hardware for a given computational problem. 
 \section{Introduction}
 \label{sec:intro}
 
-Thread scheduling is a problem that has been around since the 1960s. By the early 2000s, thread scheduling was commonly believed to be solved in the Linux community. However, with the rising popularity of multiprocessor multicore systems and the rapidly developing requirements driven by new hardware, the problem space has become considerably more complex. This paper will describe some newly found issues in the Linux scheduler, their fixes, and two recent developments. All of them substantially improve the efficiency of average programs and improve efficiency for certain programs by up to 138 times.~\cite{Lozi:2016}
+Thread scheduling is a problem that has been around since the 1960s. By the early 2000s, thread scheduling was commonly believed to be solved in the Linux community. However, with the rising popularity of multiprocessor multicore systems and the rapidly developing requirements driven by new hardware, the problem space has become considerably more complex. This paper will describe some newly found issues in the Linux scheduler, their fixes, and two recent developments. The methods in this paper were analyzing current literature on the topic of thread scheduler improvements for multicore systems and to report relevant developments. Each of the developments meaningfully improve the efficiency of average programs and improve efficiency for certain programs by up to 138 times.~\cite{Lozi:2016}
 
 \section{Background}
 \label{sec:bg}
@@ -230,8 +232,8 @@ For load balancing, cores exist in a hierarchy where each level is called a \emp
 \centering
 \psfig{file=CFS_Loadbalancer.png,width =3in}
 \caption{Simplified CFS Load Balance algorithm from Lozi et al. CPUs are cores.~\cite{Lozi:2016}}
-\todo[inline]{Should make into an algorithm rather than figure.}
 \label{fig:cfsloadbalancer}
+\todo[inline]{Should make into an algorithm rather than figure.}
 \end{figure}
 
 A naiive approach to load balancing would be to compare load on each core and transfer tasks from cores with the highest load to cores with the lowest load. This approach would not put into consideration improving thread locality or NUMA. Instead, the CFS load-balancing algorithm is executed on each CPU for each scheduling domain that the CPU is a part of starting from the first level to last levels of scheduling domain. A simplification of the CFS load balancing algorithm can be found in Figure \ref{fig:cfsloadbalancer}.
@@ -333,6 +335,7 @@ Figure \ref{fig:shuf_performance} details the improvements that Shuffling made r
 \psfig{file=Performance_Shuffler.png,width =3in}
 \caption{Performance Improvements relative to Solaris across 20 multithreaded programs. From Kumar et al.~\cite{KumarEtal:2014}}
 \label{fig:shuf_performance}
+\todo[inline]{Should be a "table" not a figure}
 \end{figure}
 
 \begin{figure}
@@ -367,29 +370,32 @@ Timeslices in FLSCHED are assigned Round-Robin. The only managed scheduling info
 
 To evaluate FLSCHED performance, researchers used the NAS Parallel Benchmark (NPB), a set of programs that are used to evaluate the efficiency of parallel computing systems. NPB version 3.3.1 consists of 10 problems, but two of which can not run on the Xeon Phi due to memory constraints. The tests were ran on FLSCHED, the CFS, and two other schedulers by the names FIFO and RR in order to compare. From the results of these tests (Figure \ref{fig:flsched_npb}), you can see that the FLSCHED scales better as the number of threads increases for six out of eight problems. Efficiency of the ep and is programs did not improve under FLSCHED. \cite{JoEtal:2017}
 
-The researchers traced the cause of the efficiency improvements to minimizing a certain kind of lock called a spin lock from their scheduler. Figure \ref{fig:flsched_spinlock} shows the percent of time that each of these schedulers spend processing spin locks. Time spent on spin locks was more than halved for programs cg, mg, sp and ua. \cite{JoEtal:2017}
-
-Finally, Jo et al. also measured per-function diagnostics of both the CFS and FLSCHED using ftrace. The functions measured were crucial scheduler tasks. The CFS was compared to FLSCHED by running hackbench, a well known scheduler stress test,  and measuring number of function calls and time spent executing them. See Figure \ref{fig:flsched_func}.\cite{JoEtal:2017}
-
 \begin{figure*}
 \centering
 \psfig{file=FLSCHED_NPBCMP.png,width =5.1in}
-\caption{ From Jo et al.~\cite{JoEtal:2017}}
+\caption{FLSCHED performance comparison of various schedulers on programs in the NAS Parallel Benchmark. From Jo et al.~\cite{JoEtal:2017}}
 \label{fig:flsched_npb}
 \end{figure*}
+
+
+The researchers traced the cause of the efficiency improvements to minimizing a certain kind of lock called a spin lock from their scheduler. Figure \ref{fig:flsched_spinlock} shows the percent of time that each of these schedulers spend processing spin locks. Time spent on spin locks was more than halved for programs cg, mg, sp and ua. \cite{JoEtal:2017}
 
 \begin{figure}
 \centering
 \psfig{file=FLSCHED_SpinLock.png,width =3in}
-\caption{ From Jo et al.~\cite{JoEtal:2017}}
+\caption{ Percent of time that various schedulers spend executing a certain type of lock called a spin lock. Lock times were measured throughout the runtime of the NAS Parallel Benchmark at 1,600 threads. From Jo et al.~\cite{JoEtal:2017}}
 \label{fig:flsched_spinlock}
+\todo[inline]{Should be a "table" not a figure}
 \end{figure}
+
+Finally, Jo et al. also measured per-function diagnostics of both the CFS and FLSCHED using ftrace. The functions measured were crucial scheduler tasks. The CFS was compared to FLSCHED by running hackbench, a well known scheduler stress test, and measuring number of function calls and time spent executing them. See Figure \ref{fig:flsched_func}.\cite{JoEtal:2017}
 
 \begin{figure*}
 \centering
 \psfig{file=FLSCHED_SchedulerCMP.png,width =5.3in}
-\caption{ From Jo et al.~\cite{JoEtal:2017}}
+\caption{Average time and function call counts for critical scheduler tasks. The numbers were gathered using ftrace while running the hackbench stress test for thread schedulers. From Jo et al.~\cite{JoEtal:2017}}
 \label{fig:flsched_func}
+\todo[inline]{Should be a "table" not a figure}
 \end{figure*}
 
 \todo[inline]{FLSched source does not specify what kind of memory constraints disable those two parallel problems from being run on the Xeon Phi. What's stopping you from just attaching more RAM..? Is there some restriction on memory emplaced by using the Xeon Phi? The Xeon Phi is not a normal processor, the researchers appear to be interfacing with this processor through a primary system, so maybe it doesn't use ram and only has built-in memory or something..?}
