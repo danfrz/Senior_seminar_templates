@@ -65,12 +65,12 @@ Daniel C. Frazier\\
 }
 \maketitle
 
-\todo[inline]{This is an incomplete Draft.}
+\todo[inline]{This is an incomplete draft.}
 
 \begin{abstract}
 There are many potential choices of hardware for a given computational problem. The CPUs used on most modern computing systems employ multiple cores. Some newer systems, called manycore systems have upwards of 76 cores and increasing. Some systems have multiple processors, of which also have multiple cores. To take advantage of this hardware, independent program tasks (threads) should be distributed wisely. In this paper, we will cover important decisions that need to be made in order to make better decisions about how tasks are best allocated to these resources to maximize performance.
 
-\todo[inline]{Definitely needs improvement.}
+\todo[inline]{Abstract definitely needs improvement.}
 \end{abstract}
 
 \keywords{Scheduling; thread migration; multicore; multiprocessing; lock contention; last-level cache misses}
@@ -93,7 +93,7 @@ For example, imagine an image editing program that can apply an expensive filter
 	
 Threads are tied to the \emph{processes} that spawn them. A process always has at least one thread. Processes are typically independant of each other while threads exist within a process. \emph{Context switching} within a CPU is the process of storing and restoring the state of a process or thread so that execution can be paused or resumed. A processes state consists of resources that each of its threads should have access to. These resources are: compiled code and data, sockets, file handles, and logistical information stored in the \emph{process control block} such as processor privileges and what IO devices have been allocated to this process ~\cite{WikiProcessControlBlock,WikiThreads}. A thread's state consists of a stack, a clone of the CPUs registers, and on some systems, extra storage for thread-local global variables~\cite{WikiThreads,WikiThreadLocalStorage}. Context switching is typically fastest between threads within a process because a bulk of the data that is required to be available, the resources, is already available.~\cite{WikiThreads} 
 
-The ~\emph{scheduler} is the part of the operating system that is responsible for managing and distributing the CPU runtime which each of these processes and their respective threads receive. New threads and processes are added to the scheduler when they are made.~\cite{Lozi:2016}
+The \emph{scheduler} is the part of the operating system that is responsible for managing and distributing the CPU runtime which each of these processes and their respective threads receive. New threads and processes are added to the scheduler when they are made.~\cite{Lozi:2016}
 
 \subsection{Completely Fair Scheduler (CFS)}
 \label{sec:cfs}
@@ -115,7 +115,7 @@ Before we can meaningfully discuss these bugs, we must first understand how and 
 \todo[inline]{RIGHT Each group of n cores is a scheduling domain, and as such, a processor and groups of processors can be scheduling domains, which the CFS/Load balancer algorithms do support. I'm still not entirely clear on which cache tends to reside, though.
 }
 
-\todo[inline]{Other sources insist that the CFS is state-of-the-art but mostly use that fact in comparison to their own algorithms, should clarify that the CFS, while it has problems is still good for the job it was set out to do.}
+\todo[inline]{Other sources insist that the CFS is state-of-the-art but mostly use that fact in comparison to their own algorithms, should clarify that the CFS, while it has(/had?) problems is still good for the job it was set out to do.}
 
 \subsection{Cache on NUMA Systems}
 \label{sec:cache}
@@ -195,7 +195,7 @@ public static class GUIProgram {
 \end{figure}
 
 %https://computing.llnl.gov/tutorials/pthreads/ If I want to go the mutex route.
-\todo[inline]{I was planning on referring to Figure~\ref{fig:locks} in this Section but I am not satisfied with this example yet. For one, it contains a lot of irrelevant java ceremony. It's really long. It also depends on knowing java features that \emph{implicitly} call the concepts we're talking about, not explicitly (e.g. setVisible starting the GUI thread). Should I try an example using mutex and pthreads in C? typedef mutex to ``lock''...? But pthreads \emph{also} require some ceremony. Perhaps I should stick to an example in pseudocode? Maybe there is a better example that doesn't use GUI in java, a parallel program. If I do include a Java example I should keep the last paragraph about synchronized, otherwise it would not be relevant to the rest of the paper, would have to switch to explaining a mutex. I will look into finding a simple C parallel program which experiences lock contention.}
+\todo[inline]{I was planning on referring to Figure~\ref{fig:locks} in this Section but I am not satisfied with this example yet. For one, it contains a lot of irrelevant java ceremony. It's really long. It also depends on knowing java features that \emph{implicitly} call the concepts we're talking about, not explicitly (e.g. setVisible starting the GUI thread). Should I try an example using mutex and pthreads in C? pthreads \emph{also} require some ceremony. Perhaps I should stick to an example in pseudocode? Maybe there is a better example that doesn't use GUI in java, a parallel program. If I do include a Java example I should keep the last paragraph about synchronized, otherwise it would not be relevant to the rest of the paper, would have to switch to explaining a mutex. I will look into finding a simple C parallel program which experiences lock contention.}
 
 \section{Methods}
 \label{sec:methods}
