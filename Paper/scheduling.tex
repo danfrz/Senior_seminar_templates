@@ -141,62 +141,6 @@ When a thread needs to use an object which is associated with a lock, the thread
 
 In Java this is simplified by the existence of the \emph{synchronized} keyword. During the processing of a synchronized block, no other synchronized block on that object may begin execution until the first block ends. There are several ways to use synchronized in Java. Non-static methods may be defined as synchronized which lock using ``this'' object. It is also possible to create a synchronized block by passing which object to be synchronized on and defining a block to be run within the synchronized scope.~\cite{JavaLangSpec}
 
-\begin{figure}
-\begin{lstlisting}
-public static void main(String[] args) throws InterruptedException
-{
-    GUIProgram program = new GUIProgram();
-    String fromGUI = program.getStringFromGUI();
-    System.out.println("Received String: " + fromGUI);
-}
-
-public static class GUIProgram {
-    public String getStringFromGUI() throws InterruptedException
-    {
-        //Get a reference to this GUIProgram instance to use as the
-        //data object whose access should be synchronized.
-        GUIProgram self = this;
-
-        //Create a graphical window
-        JFrame window = new JFrame("Enter text and press Enter");
-        Container container = window.getContentPane();
-
-        //Add an event to a textbox where when Enter is pressed, it
-        //notifies any waiting threads to begin execution again.
-        //The actionPerformed event occurs in a GUI thread.
-        JTextField textbox = new JTextField();
-        textbox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                synchronized (self)
-                {
-                    self.notify();
-                }
-            }
-        });
-
-        container.add(textbox);
-        window.pack();
-
-        //Set visibile starts up the GUI thread for the JFrame window
-        window.setVisible(true);
-
-        System.out.println("Waiting for Enter to be pressed");
-        //Wait until the textbox event notifies this GUIProgram instance
-        synchronized (self) {
-            self.wait();
-        }
-        return textbox.getText();
-    }
-}
-\end{lstlisting}
-\caption{Example Java GUI program employing threads and synchronization with locks.}
-\label{fig:locks}
-\end{figure}
-
-%https://computing.llnl.gov/tutorials/pthreads/ If I want to go the mutex route.
-\todo[inline]{I was planning on referring to Figure~\ref{fig:locks} in this Section but I am not satisfied with this example yet. For one, it contains a lot of irrelevant java ceremony. It's really long. It also depends on knowing java features that \emph{implicitly} call the concepts we're talking about, not explicitly (e.g. setVisible starting the GUI thread). Should I try an example using mutex and pthreads in C? pthreads \emph{also} require some ceremony. Perhaps I should stick to an example in pseudocode? Maybe there is a better example that doesn't use GUI in java, a parallel program. If I do include a Java example I should keep the last paragraph about synchronized, otherwise it would not be relevant to the rest of the paper, would have to switch to explaining a mutex. I will look into finding a simple C parallel program which experiences lock contention.}
-
 \section{Methods}
 \label{sec:methods}
 
