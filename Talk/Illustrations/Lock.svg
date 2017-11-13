@@ -451,7 +451,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="1"
      inkscape:cx="327.69816"
-     inkscape:cy="363.51858"
+     inkscape:cy="323.51858"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -468,7 +468,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -635,17 +635,6 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.42296252"
-       x="102.61724"
-       y="193.03839"
-       id="text4613-1-8"><tspan
-         sodipodi:role="line"
-         id="tspan4611-0-8"
-         x="102.61724"
-         y="193.03839"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.42296252">1</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.42296252"
        x="102.62131"
        y="212.39098"
        id="text4613-1-8-4"><tspan
@@ -761,28 +750,6 @@
          x="156.44313"
          y="233.41028"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.89530087px;font-family:Consolas;-inkscape-font-specification:'Consolas Bold';fill:#134f03;fill-opacity:1;stroke-width:0.42296252">release</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.42296252"
-       x="102.69733"
-       y="232.86253"
-       id="text4613-1-4-6"><tspan
-         sodipodi:role="line"
-         id="tspan4611-0-1-3"
-         x="102.69733"
-         y="232.86253"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.42296252">2</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.42296252"
-       x="102.76836"
-       y="253.19995"
-       id="text4613-1-6-9"><tspan
-         sodipodi:role="line"
-         id="tspan4611-0-9-4"
-         x="102.76836"
-         y="253.19995"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';stroke-width:0.42296252">2</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:10.15110111px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif Bold';letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.42296252"
