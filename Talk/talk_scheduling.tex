@@ -113,9 +113,14 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Introduction}
+\frametitle{Introduction}
 
 Hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex.
+
+\linespace
+
+One of these changes was the development of systems with multiple cores which allows it perform tasks concurrently on each core
+
 
 \end{frame}
 
@@ -242,12 +247,72 @@ Now, let's fix the race condition in the previous example using locks
 \begin{frame}
 \frametitle{Completely Fair Scheduler (CFS)}
 
+\begin{itemize}
+\item Default Linux thread scheduler (there are others)
+\item Handles which threads are executed at what times and on which CPU cores
+\item Spend a \emph{fair} amount of runtime on all threads
+
+\linespace
+
+\item The scheduler \emph{switches} active threads on cores by saving and restoring thread and processor state information.
+\item These switches are called \emph{context switches}.
+\end{itemize}
+
+We will continue to cover the CFS, then clarify process and thread state.
+\end{frame}
+
+\begin{frame}
+\frametitle{Completely Fair Scheduler (CFS)}
+
+\textbf{Goal:}
+\begin{itemize}
+\item Makes sure all threads run \emph{at least once} within arbitrary interval of CPU cycles
+\item \emph{Timeslice} maximum cycles evenly amongst threads, factoring in thread weights\footnote{Priority (PR) and niceness (NI) values are responsible for determining process priority on Linux. We won't get into that here.}
+\item The scheduler monitors the cycles that threads receive and switches them when they reach their max
+\end{itemize}
+
+\begin{figure}
+		\includegraphics[width=0.8\textwidth]{Illustrations/CFS}
+		\label{fig:cfs}
+\end{figure}
+
+\linespace
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Runqueues}
+
+\begin{itemize}
+	\item The data structure within CFS that contains threads is called a runqueue
+	\item A \emph{runqueue} is a priority queue that sorts for threads that have received the least cycles in the current interval
+	\item When a thread reaches its maximum time, the first thread in the runqueue is chosen	
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Runqueues on Multiple Cores}
+If each core needs work to do, how do each of them receive threads?
+
+\linespace
+
+Will show that
+\begin{itemize}
+	\item If all cores shared one runqueue, cores would be doing frequent expensive book-keeping in order to search for available work and...
+	\item Each core should have its own runqueue
+\end{itemize}
+
+\linespace
+
+In order to understand the motivation for multiple runqueues, we need to know some about cache and processor state. (It will also help us later on)
 
 \end{frame}
 
 
 
-\subsection[CFS]{Cache}
+\subsection[Cache]{Thread State and Cache}
 \begin{frame}
 \end{frame}
 \subsection[Load Balancing]{Load Balancing for CFS}
