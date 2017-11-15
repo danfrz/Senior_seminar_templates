@@ -12,10 +12,10 @@
 \usepackage{times}
 \usepackage{listings}
 \usepackage[T1]{fontenc} 
+
 % Or whatever. Note that the encoding and the font should match. If T1
 % does not look nice, try deleting the line with the fontenc.
 \usepackage{amsmath}
-
 \newcommand{\linespace}{\vskip 0.25cm}
 
 \definecolor{MyForestGreen}{rgb}{0,0.7,0} 
@@ -27,11 +27,16 @@
 \definecolor{MyLightGray}{rgb}{0.6,0.6,0.6}
 \newcommand{\tabletie}[1]{\color{MyLightGray} {#1}}
 
-\lstset{language=Java}
+\addtobeamertemplate{navigation symbols}{}{%
+    \usebeamerfont{footline}%
+    \usebeamercolor[fg]{footline}%
+    \hspace{1em}%
+    \insertframenumber/\inserttotalframenumber
+}
 
-% The text in square brackets is the short version of your title and will be used in the
-% header/footer depending on your theme.
-\title[Developmental plasticity in N-gram GP]{Thread Scheduler Efficiency Improvements \\ for Multiprocessor Multicore Systems [Draft]}
+\lstset{language=Java, frame=single, showspaces=false, }
+
+\title[Developmental plasticity in N-gram GP]{Thread Scheduler Efficiency Improvements \\ for Multicore Systems}
 
 % Sub-titles are optional - uncomment and edit the next line if you want one.
 % \subtitle{Why does sub-tree crossover work?} 
@@ -57,16 +62,16 @@
 % the beginning of each subsection:
 \AtBeginSection[]
 {
-  \begin{frame}<beamer>
-    \frametitle{Outline}
-    \tableofcontents[currentsection, hideothersubsections]
-  \end{frame}
+	\begin{frame}<beamer>
+		\frametitle{Outline}
+		\tableofcontents[currentsection, hideothersubsections]
+	\end{frame}
 }
 
 \begin{document}
 
 \begin{frame}
-  \titlepage
+\titlepage
 \end{frame}
 
 % For a 20-25 minute senior seminar talk you probably want something like:
@@ -82,16 +87,38 @@
 \begin{frame}
   \frametitle{Introduction}
   
-  \begin{columns}
-  \begin{column}{0.6\textwidth}
-  \begin{itemize}
-  	\item Introduce Topic and where the talk is going.
-  \end{itemize}
-  \end{column}
-  \begin{column}{0.4\textwidth}
-  \end{column}
-  \end{columns}
+\begin{itemize}
+	\item \emph{Thread scheduler} is an important system component that manages the processing programs receive in a given time
+  	\item Always running, so it must be efficient
+  	
+	\linespace
+	
+ 	\item Most computers before 2001 were equipped with one processor containing one core
+	\item At the end of the single-processor single-core era (early 2000s) thread scheduling was largely considered a solved problem by the Linux community
+
+\end{itemize}
+
 \end{frame}
+
+
+\begin{frame}
+
+\begin{figure}
+
+\begin{quote}
+``...not very many things that have aged as well as the scheduler. Which is just another proof that scheduling is easy.''
+\end{quote}
+Linus, Torvals, 2001 \cite{Lozi:2016}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Introduction}
+
+Hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex.
+
+\end{frame}
+
 
 \subsection*{Outline}
 
@@ -100,53 +127,135 @@
   \tableofcontents[hideallsubsections]
 \end{frame}
 
-\section[Background]{Background}
+\section[Concepts]{Concepts}
 
-\subsection[Threads]{Threads and Multithreading}
+\subsection[Threads]{Threads}
 
 \begin{frame}
-\frametitle{What are Threads?}
+\frametitle{Using Threads}
+
+\begin{columns}
+	\begin{column}{0.5\textwidth}
+		\begin{itemize}
+		\item \emph{Threads} allow a program to run multiple independent tasks at the same time
+		
+		\linespace
+		
+		\item Useful for programs:
+			\begin{itemize}
+  			 \item with long, mostly-independent computations
+			 \item with a graphical interface
+	  		\end{itemize}
+		\end{itemize}
+	\end{column}
+	
+	\begin{column}{0.5\textwidth}
+		\begin{figure}
+		\includegraphics[width=0.95\textwidth]{Illustrations/ThreadExample_GUI}
+		\label{fig:domains}
+		\caption{Example GUI Program. \textbf{Three} threads are created within \textbf{one} process}
+		\end{figure}
+	\end{column}
+\end{columns}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Using Threads}
+
+	\begin{itemize}
+  		\item A \emph{multithreaded} program is a program that employs threads
+  		
+  		\linespace
+  		
+  		\item \emph{Concurrent} computing techniques are techniques that allow many tasks to occur at the same time [W]
+  		
+  		\linespace  		
+  		
+  		\item \emph{Parallel} computing techniques are techniques that allow many calculations to occur at the same time [W]
+  		
+  		\linespace  		
+  		
+  		\item Problems can be solved or improved using neither, either, or both of these techniques at once
+	  \end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Using Threads}
+
+One problem multithreaded programs face are called \emph{Race~Conditions}.
+
+\linespace
+
+Defined in Saltzer and Kaashoek as ``A timing-dependent error in thread coordination that may result in threads computing incorrect results.'' 
+
+\linespace
+
+Let's see an example where two threads increment a shared variable.
+\end{frame}
+
+\begin{frame}
+\frametitle{Race Condition Example}
+	\begin{figure}
+		\includegraphics[width=0.8\textwidth]{Illustrations/RaceCondition}
+		\label{fig:racecondition}
+	\end{figure}
+
+\end{frame}
+
+\subsection[Locks]{Synchronicity and Locks}
+
+
+\begin{frame}
+\frametitle{Synchronicity and Locks}
 
 \begin{itemize}
-  \item Added developmental plasticity to N-gram GP using Incremental Fitness-based Development (IFD).
+	\item Race conditions can be fixed by controlling access to shared data.
+	\item This control is achieved by employing locks.
+	
+	\linespace
+	
+	\item \emph{Locks} secure objects or data shared between threads such that only one thread can read and write to it at one time.
+
+	\linespace
+
+	\item When a thread \emph{locks} a lock, that thread \textbf{acquires} the lock
+	\item When a thread \emph{unlocks} a lock, that thread \textbf{releases} the lock
 \end{itemize}
+
+Now, let's fix the race condition in the previous example using locks
 
 \end{frame}
 
 \begin{frame}
-\frametitle{Example Multithreaded Program}
+\frametitle{Lock Example}
+	\begin{figure}
+		\includegraphics[width=0.8\textwidth]{Illustrations/Lock}
+		\label{fig:lock}
+	\end{figure}
+\end{frame}
 
-\begin{lstlisting}
+\section[Thread Scheduling]{Thread Scheduling on Linux}
+\subsection[CFS]{Completely Fair Scheduler}
+\begin{frame}
+\frametitle{Completely Fair Scheduler (CFS)}
 
-        public String getStringFromGUI()
-        {
-            JFrame window = new JFrame("Enter text and press Enter");
-            Container container = window.getContentPane();
-
-            JTextField textbox = new JTextField();
-            textbox.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    //Ran asynchronously in another thread
-                    self.notify();
-                    window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
-                    window.setVisible(false);
-                }
-            });
-
-            container.add(textbox);
-            window.pack();
-
-            window.setVisible(true);
-            wait();
-            return textbox.getText();
-        }
-\end{lstlisting}
 
 \end{frame}
 
-\subsection[parallel]{Parallel Programming}
 
+
+\subsection[CFS]{Cache}
+\begin{frame}
+\end{frame}
+\subsection[Load Balancing]{Load Balancing for CFS}
+\begin{frame}
+\end{frame}
+\section[Bug Fixes and New Schedulers]{Bug fixes and two new schedulers}
+\begin{frame}
+\end{frame}
 
 \section[Conclusions]{Conclusions}
 
@@ -177,50 +286,52 @@
 \end{frame}
 
 \begin{frame}
-	\frametitle{Thanks!}
+\frametitle{Thanks!}
+
+Thank you for your time and attention!
 	
-	Thank you for your time and attention!
-		
-	\linespace
-	\linespace
-	
-	Contact:  
-	\begin{itemize}
-		\item \texttt{mcphee@morris.umn.edu}
-		\item \url{http://www.morris.umn.edu/~mcphee/}
-	\end{itemize}
-	
-	\linespace
-	\linespace
-	
-	\begin{center}
-	{\huge Questions?}
-	\end{center}
+\linespace
+\linespace
+
+Contact:  
+\begin{itemize}
+	\item \texttt{mcphee@morris.umn.edu}
+	\item \url{http://www.morris.umn.edu/~mcphee/}
+\end{itemize}
+
+\linespace
+\linespace
+
+\begin{center}
+{\huge Questions?}
+\end{center}
 \end{frame}
 
 \section*{References}
 
 \begin{frame} 
-	\frametitle{References} 
-	
-	\begin{thebibliography}{lskdjf}
-	
-	\bibitem{McPhee:2009:gecco}
-N.~F. McPhee, E.~Crane, S.~Lahr, and R.~Poli.
-\newblock Developmental Plasticity in Linear Genetic Programming.
+\frametitle{References} 
+
+\begin{thebibliography}{lskdjf}
+
+\bibitem{Jo:2017}
+H.~Jo, W.~Kang, C.~Min, and T.~Kim.
+
+\newblock FLsched: A lockless and lightweight approach to OS scheduler for Xeon Phi.
+
 \newblock In G\"unther Raidl, \emph{et al}, editors, {\em GECCO '09}, pages 1019--1026, Montr\'eal, Qu\'ebec, Canada, 2009.
-	
-	\bibitem{citeulike:3452411}
-	R.~Poli and N.~McPhee.
+
+\bibitem{Lozi:2016}
+R.~Poli and N.~McPhee.
 \newblock A linear estimation-of-distribution {GP} system.
 \newblock In M.~O'Neill, \emph{et al}, editors, {\em EuroGP 2008}, volume
   4971 of {\em LNCS}, pages 206--217, Naples,
   26-28 Mar. 2008. Springer.
   
-  	\end{thebibliography}
-	
-	\linespace
-	\begin{center}
+\end{thebibliography}
+
+\linespace
+\begin{center}
 	See the GECCO '09 paper for additional references.
 	\end{center}
 \end{frame} 
