@@ -206,9 +206,17 @@ One of these changes was the development of multicore systems
   		
   		\item \emph{Parallel} computing techniques are techniques that allow many calculations to occur at the same time [W]
   		
+\linespace  		
+  		
+		\item Problems can be solved or improved using neither, either, or both of these techniques at once
+		
+  		\linespace
+  		
+  		\item All you \emph{need} to know about \emph{parallel programs} for this talk is that they are used to perform extensive, often repetitive computations on large sets of data and do so efficiently by heavily utilizing threads
+  		
   		\linespace  		
   		
-  		\item Problems can be solved or improved using neither, either, or both of these techniques at once
+  		
 	  \end{itemize}
 
 \end{frame}
@@ -449,7 +457,7 @@ Since process states are heaver than thread states, context switches between thr
 \begin{columns}
 \begin{column}{0.72\textwidth}
 \begin{itemize}
-	\item[] Four bugs from Lozi et al.[W]:
+	\item[] Two of four bugs from Lozi et al.~\cite{Lozi:2016}:
 	\item The Overload-on-Wakeup bug
 	\item The Missing Scheduling Domains bug
 	
@@ -462,7 +470,7 @@ Since process states are heaver than thread states, context switches between thr
 
 	\linespace
 	
-\item[] These two heavily depend on definition of load balancing, scheduling domains, and scheduling groups
+\item[] (These two heavily depend on definition of load balancing, scheduling domains, and scheduling groups)
 	
 \end{itemize}
 \end{column}
@@ -516,7 +524,7 @@ Since this bug strongly effected database systems, Lozi et al. ran a database be
 		\emph{Overload-on-Wakeup} & 43.5s (-22.2\%) & 471.1s (-13.2\%) \\
 		\hline
 	\end{tabular}
-	\caption{"Impact of the bug fixes for Overload-on-Wakeup on a popular commercial database (values averaged after five runs.)"}
+	\caption{"Impact of the bug fix for Overload-on-Wakeup on a popular commercial database (values averaged after five runs.)"}
 \end{table}
 
 \end{frame}
@@ -524,25 +532,117 @@ Since this bug strongly effected database systems, Lozi et al. ran a database be
 \begin{frame}
 \frametitle{The Missing Scheduling Domains bug}
 
+\begin{itemize}
+\item Bug was \emph{already fixed}, but regressed during a refactor on Linux kernel version 3.19+
+\item Occurs rarely, when a core is disable and re-enabled
+
 \linespace
 
+\item Bug causes system to misrepresent amount of groups of cores available to perform load-balancing on, meaning load-balancing would never happen!
 
+\item This meant that threads and processes would stay where they were
+
+\linespace
+
+	\item Reintroducing the removed line fixed the problem
+\end{itemize}
 \end{frame}
 
+\begin{frame}
+\frametitle{The Missing Scheduling Domains bug}
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+
+\begin{itemize}
+
+	\item Lozi et al. used a group of computational applications that heavily utilize threads called the \emph{NAS Parallel Benchmark (NPB)}, developed by NASA
+	
+	\linespace
+	
+	\item They disabled and re-enabled a core before each run of the benchmark
+\end{itemize}
+
+\end{column}
+\begin{column}{0.5\textwidth}
+
+\begin{table}
+	\centering
+	\begin{tabular}{| c | c | c | c |}
+		\hline			
+	  	Application & Time w/ bug (sec) & Time w/o bug (sec) & Speedup factor (x) \\ \hline
+	  	bt & 122 & 23 & 5.24 \\ \hline
+	  	cg & 134 & 5.4 & 24.90 \\ \hline
+	  	ep & 72 & 18 & 4.0 \\ \hline
+	  	ft & 110 & 14 & 7.69 \\ \hline
+	  	is & 283 & 53 & 5.36 \\ \hline
+	  	lu & 2196 & 16 & 137.59 \\ \hline
+	  	mg & 81 & 9 & 9.03 \\ \hline
+	  	sp & 109 & 12 & 9.06 \\ \hline
+	  	ua & 906 & 14 & 64.27 \\ \hline
+		\hline
+	\end{tabular}
+	\caption{"Impact of the bug fix for Missing Scheduling Domains on the NPB. From Lozi et al.~\cite{Lozi:2016}"}
+\end{table}
+
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+That's all for the CFS, now on to some new schedulers!
+
+\linespace
+
+\begin{itemize}
+\item Shuffler
+\item FLSCHED
+\end{itemize}
+
+\linespace
+
+They both aim to solve the same problem
+
+\linespace
+\textbf{Problem:} Parallel programs\footnote{Reminder: All we \emph{need} to know for this talk about parallel programs is that they heavily utilize threads} whose threads share memory on Linux systems running the CFS experience repeated high waiting times on the acquisition of locks, which impedes efficiency.
+
+\linespace
+
+\linespace
+
+The term for what these systems face is called \emph{lock contention} and it is to blame for the high acquisition times.
+\end{frame}
 
 \subsection{Shuffler}
 \begin{frame}
 \frametitle{Shuffler}
 
-text
+(in short, unfinished)
+
+Shuffler monitors the lock acquisition times of various executing threads, isolates groups of threads that have similar lock acquisition times, and migrate those threads to the same processor, assuming that those groups of threads may be contending with eachother for the same lock and would both have faster acquisition times if they were colocated.
 
 \end{frame}
 
-\subsection{FLSched}
+\subsection{FLSCHED}
 \begin{frame}
-\frametitle{FLSched}
+\frametitle{FLSCHED}
 
-text
+(in short, unfinished)
+
+ONE REQUIREMENT TO RULE THEM ALL
+EFFICIENCY!!!
+
+\linespace
+
+Aims to improve the efficiency of scheduling on linux by gutting the requirements and features of the scheduler.
+A lockless\footnote{In Jo et al. they clarify it is still built on top of the \emph{scheduler core} which still locks in it.} thread scheduler.
+
+\linespace
+
+Hey wait. Removing locks in the scheduler itself doesn't necessarily mean that program's threads within the scheduler won't contend for eachother? \textbf{How does it allocate threads?}
+
+It's more efficient though.
+
 
 \end{frame}
 
