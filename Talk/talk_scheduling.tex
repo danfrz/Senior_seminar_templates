@@ -80,7 +80,7 @@
 % - Talk about 30s to 2min per frame. So there should probably be between
 %   15 and 30 frames, all told.
 
-\section*{Overview}
+\section*{Introduction}
 
 \subsection*{Introduction}
 
@@ -115,15 +115,40 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \begin{frame}
 \frametitle{Introduction}
 
-Hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex.
+Hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex
 
 \linespace
 
-One of these changes was the development of systems with multiple cores which allows it perform tasks concurrently on each core
-
+One of these changes was the development of multicore systems
 
 \end{frame}
 
+
+\begin{frame}
+\frametitle{Introduction}
+
+
+\begin{columns}
+	\begin{column}{0.78\textwidth}
+
+		\begin{itemize}
+		\item The computer processor is responsible for executing compiled code.
+
+		\item A single-core processor has one \emph{processing unit}, while a multi-core processor has many \emph{processing units}.
+
+		\item A processing unit contains \emph{registers} which can be seen as a snapshot of the current state of a running program on that processing unit
+
+		\item A processor with multiple cores allows it perform tasks concurrently on each core
+		\end{itemize}
+	\end{column}
+	\begin{column}{0.22\textwidth}
+		\begin{figure}
+		\includegraphics[width=0.95\textwidth]{Illustrations/Registers}
+		\label{fig:registers}
+		\end{figure}
+	\end{column}
+\end{columns}
+\end{frame}
 
 \subsection*{Outline}
 
@@ -188,17 +213,17 @@ One of these changes was the development of systems with multiple cores which al
 
 
 \begin{frame}
-\frametitle{Using Threads}
+\frametitle{Race Conditions}
 
-One problem multithreaded programs face are called \emph{Race~Conditions}.
-
-\linespace
-
-Defined in Saltzer and Kaashoek as ``A timing-dependent error in thread coordination that may result in threads computing incorrect results.'' 
+One problem multithreaded programs face are called \emph{Race~Conditions}
 
 \linespace
 
-Let's see an example where two threads increment a shared variable.
+Defined in Saltzer and Kaashoek as ``A timing-dependent error in thread coordination that may result in threads computing incorrect results'' 
+
+\linespace
+
+Let's see an example where two threads increment a shared variable
 \end{frame}
 
 \begin{frame}
@@ -218,11 +243,11 @@ Let's see an example where two threads increment a shared variable.
 
 \begin{itemize}
 	\item Race conditions can be fixed by controlling access to shared data.
-	\item This control is achieved by employing locks.
+	\item This control is achieved by employing locks
 	
 	\linespace
 	
-	\item \emph{Locks} secure objects or data shared between threads such that only one thread can read and write to it at one time.
+	\item \emph{Locks} secure objects or data shared between threads such that only one thread can read and write to it at one time
 
 	\linespace
 
@@ -237,7 +262,7 @@ Now, let's fix the race condition in the previous example using locks
 \begin{frame}
 \frametitle{Lock Example}
 	\begin{figure}
-		\includegraphics[width=0.8\textwidth]{Illustrations/Lock}
+		\includegraphics[width=0.7\textwidth]{Illustrations/Lock}
 		\label{fig:lock}
 	\end{figure}
 \end{frame}
@@ -249,26 +274,22 @@ Now, let's fix the race condition in the previous example using locks
 
 \begin{itemize}
 \item Default Linux thread scheduler (there are others)
-\item Handles which threads are executed at what times and on which CPU cores
+\item Handles which threads are executed at what times on this core
 \item Spend a \emph{fair} amount of runtime on all threads
-
-\linespace
-
-\item The scheduler \emph{switches} active threads on cores by saving and restoring thread and processor state information.
-\item These switches are called \emph{context switches}.
 \end{itemize}
 
-We will continue to cover the CFS, then clarify process and thread state.
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Completely Fair Scheduler (CFS)}
 
-\textbf{Goal:}
 \begin{itemize}
-\item Makes sure all threads run \emph{at least once} within arbitrary interval of CPU cycles
-\item \emph{Timeslice} maximum cycles evenly amongst threads, factoring in thread weights\footnote{Priority (PR) and niceness (NI) values are responsible for determining process priority on Linux. We won't get into that here.}
-\item The scheduler monitors the cycles that threads receive and switches them when they reach their max
+\item Like any program, runs on one core
+\item Makes sure all threads run \emph{at least once} within an arbitrary interval of CPU~cycles
+\item Distribute \emph{timeslices} (max CPU cycles) among threads
+\item Threads with higher priority (weights) get larger timeslices\footnote{Priority (PR) and niceness (NI) values are responsible for determining process priority on Linux. We won't get into that here.}
+\item Monitors the number of cycles that the running thread receives and switches it out when it exceeds its timeslice
 \end{itemize}
 
 \begin{figure}
@@ -284,42 +305,235 @@ We will continue to cover the CFS, then clarify process and thread state.
 \frametitle{Runqueues}
 
 \begin{itemize}
-	\item The data structure within CFS that contains threads is called a runqueue
+	\item The data structure within the CFS that contains threads is called a runqueue
 	\item A \emph{runqueue} is a priority queue that sorts for threads that have received the least cycles in the current interval
-	\item When a thread reaches its maximum time, the first thread in the runqueue is chosen	
+	\item When a thread reaches its maximum time, the first thread in the runqueue is chosen to replace
 \end{itemize}
 
 \end{frame}
 
 
+
+
 \begin{frame}
 \frametitle{Runqueues on Multiple Cores}
-If each core needs work to do, how do each of them receive threads?
+If each core needs work to do, how are threads distributed?
 
 \linespace
 
-Will show that
-\begin{itemize}
-	\item If all cores shared one runqueue, cores would be doing frequent expensive book-keeping in order to search for available work and...
-	\item Each core should have its own runqueue
-\end{itemize}
-
-\linespace
-
-In order to understand the motivation for multiple runqueues, we need to know some about cache and processor state. (It will also help us later on)
+Before we can answer this question, we need to know some about switching threads, cache and processor state
 
 \end{frame}
 
 
 
 \subsection[Cache]{Thread State and Cache}
+
 \begin{frame}
+\frametitle{Context Switching}
+\begin{itemize}
+\item The scheduler \emph{switches} active threads on cores by saving and restoring thread and processor state information.
+\item These switches are called \emph{context switches}
+\item Scheduler performance 
+\end{itemize}
 \end{frame}
-\subsection[Load Balancing]{Load Balancing for CFS}
+
 \begin{frame}
+\frametitle{Process and Thread State}
+
+Process State
+
+\begin{itemize}
+	\item[] Consists of resources that each of the processor's threads should have access to
+	\item Compiled code, Data
+	\item Handles (references) for files and sockets
+	\item Process control block (Important logistical information)
+\end{itemize}
+
+Thread State
+
+\begin{itemize}
+	\item[] Scheduler uses this information to pause and resume a thread's execution
+	\item Run-time stack
+	\item Copy of core's registers from when the thread was last active
+\end{itemize}
+
+\textbf{Important note:} Process state contains much more data
+
 \end{frame}
+
+
+\begin{frame}
+\frametitle{Cache}
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+	\item Cache is the fastest form of memory
+	\item Memory and cache exists in a hierarchy %POINT ON SLIDE L1, L2, Last-level cache
+	\item How cache is arranged depends on the machine:
+	\begin{itemize}
+		\item A cache can exist \emph{on}, \emph{built-in} to, or \emph{outside} a processor
+		\item Cache can be one per \emph{n} processors or one per \emph{n} cores
+	
+	
+	\end{itemize}
+\end{itemize}
+
+\end{column}
+\begin{column}{0.5\textwidth}
+		\begin{figure}
+		\includegraphics[width=0.95\textwidth]{Illustrations/CacheAbstract}
+		\label{fig:domains}
+		\caption{Distance of various forms of memory from CPU}
+		\end{figure}
+	\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Cache}
+
+\begin{columns}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+	\item Cache is the fastest form of memory
+	\item \emph{Locality}: Speed of memory read and writes decrease as distance from CPU increases
+	
+	\linespace
+	
+	\item \emph{Cache coherence:} Any changes to memory shared by two caches must propogate to the other to maintain correctness
+\end{itemize}
+
+\end{column}
+\begin{column}{0.5\textwidth}
+		\begin{figure}
+		\includegraphics[width=0.95\textwidth]{Illustrations/CacheAbstract}
+		\label{fig:domains}
+		\caption{Distance of various forms of memory from CPU}
+		\end{figure}
+	\end{column}
+\end{columns}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Runqueues on Multiple Cores (Revisited)}
+
+Since process states are heaver than thread states, context switches between threads of different processes are more expensive
+
+\linespace
+
+\begin{itemize}
+	\item If all cores shared one runqueue, access and changes to it would need to be synchronous and cache-coherent
+	\item This would slow the system to a crawl
+	\item So each core has its own runqueue and threads
+\end{itemize}
+
+\linespace
+
+\begin{itemize}
+\item In order to best take advantage of available cores, the load on each of the core's runqueues must stay balanced.
+\item Most schedulers, including the CFS periodically run a load-balancing algorithm
+\item Explaining load-balancing depends on scheduling domains and groups. Don't have time to cover in this talk
+\end{itemize}
+\end{frame}
+
 \section[Bug Fixes and New Schedulers]{Bug fixes and two new schedulers}
+\subsection{Bug Fixes}
 \begin{frame}
+\frametitle{Bugs everywhere!}
+
+\begin{itemize}
+	\item[] Four bugs from Lozi et al.[W]:
+	\item The Overload-on-Wakeup bug
+	\item The Missing Scheduling Domains bug
+	
+	\linespace	
+	\noindent\rule{4cm}{0.4pt}
+	\linespace	
+	
+	\item The Scheduling Group Construction bug
+	\item The Group Imbalance bug
+
+	\linespace
+	
+\item[] These two heavily depend on definition of load balancing, scheduling domains, and scheduling groups
+	
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{The Overload-on Wakeup bug}
+\begin{itemize}
+\item Optimization in thread wakeup core where threads awakened by other threads are placed on the same core in hope to increase cache locality.
+
+\linespace
+
+\item However, it does this disregarding whether the thread should start on an idle core instead!	
+\end{itemize}
+
+\linespace
+
+\begin{itemize}
+\item This problem only occurs in environments where threads sleep frequently, such as database systems.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{The Overload-on Wakeup bug}
+The fix for this bug was to modify thread wakeup code:
+\linespace
+
+When a thread awakens by another, if the same core isn't busy it will go to that core, otherwise it goes to an idle core
+
+\linespace
+
+Since this bug strongly effected database systems, Lozi et al. ran a database benchmark for a popular proprietary database called TPC-H.
+
+\begin{table}
+	\centering
+	\begin{tabular}{| c | c | c |}
+		\hline			
+	  	Bug Fixes & TPC-H request \#18 & Full TPC-H benchmark \\ \hline
+		\emph{None} & 55.9s & 542.9s \\ \hline
+		\emph{Overload-on-Wakeup} & 43.5s (-22.2\%) & 471.1s (-13.2\%) \\
+		\hline
+	\end{tabular}
+	\caption{"Impact of the bug fixes for Overload-on-Wakeup on a popular commercial database (values averaged after five runs.)"}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{The Missing Scheduling Domains bug}
+
+\linespace
+
+
+\end{table}
+
+\end{frame}
+
+
+\subsection{Shuffler}
+\begin{frame}
+\frametitle{Shuffler}
+
+text
+
+\end{frame}
+
+\subsection{FLSched}
+\begin{frame}
+\frametitle{FLSched}
+
+text
+
 \end{frame}
 
 \section[Conclusions]{Conclusions}
