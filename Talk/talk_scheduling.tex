@@ -143,6 +143,8 @@ One of these changes was the development of multicore systems
 	\end{column}
 	\begin{column}{0.22\textwidth}
 		\begin{figure}
+		%{a,e}x are the lower halves of their extended registers.
+		%But it's not important that the graphic here accurately represent modern registers, because registers aren't the focus of this talk.
 		\includegraphics[width=0.95\textwidth]{Illustrations/Registers}
 		\label{fig:registers}
 		\end{figure}
@@ -440,10 +442,12 @@ Since process states are heaver than thread states, context switches between thr
 \end{frame}
 
 \section[Bug Fixes and New Schedulers]{Bug fixes and two new schedulers}
-\subsection{Bug Fixes}
+\subsection{CFS Bug Fixes}
 \begin{frame}
 \frametitle{Bugs everywhere!}
 
+\begin{columns}
+\begin{column}{0.72\textwidth}
 \begin{itemize}
 	\item[] Four bugs from Lozi et al.[W]:
 	\item The Overload-on-Wakeup bug
@@ -461,6 +465,14 @@ Since process states are heaver than thread states, context switches between thr
 \item[] These two heavily depend on definition of load balancing, scheduling domains, and scheduling groups
 	
 \end{itemize}
+\end{column}
+\begin{column}[b]{0.28\textwidth} %Why does to[p] make the figure on the bottom and [b]ottom make the figure on the top.....
+\begin{figure}
+\centering
+\includegraphics[width=0.95\textwidth]{Illustrations/ant_from_pexels.png}
+\end{figure}
+\end{column}
+\end{columns}
 
 \end{frame}
 
@@ -514,8 +526,6 @@ Since this bug strongly effected database systems, Lozi et al. ran a database be
 
 \linespace
 
-
-\end{table}
 
 \end{frame}
 
@@ -593,6 +603,7 @@ Contact:
 
 \begin{thebibliography}{lskdjf}
 
+%https://www.pexels.com/photo/nature-red-animal-insect-40825/
 \bibitem{Jo:2017}
 H.~Jo, W.~Kang, C.~Min, and T.~Kim.
 
