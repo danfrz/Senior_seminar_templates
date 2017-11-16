@@ -212,10 +212,7 @@ One of these changes was the development of multicore systems
 		
   		\linespace
   		
-  		\item All you \emph{need} to know about \emph{parallel programs} for this talk is that they are used to perform extensive, often repetitive computations on large sets of data and do so efficiently by heavily utilizing threads
-  		
-  		\linespace  		
-  		
+  		\item A massively parallel program is a program that supports computing great amounts of calculations at once. Parallel programs often also employ multithreading.
   		
 	  \end{itemize}
 
@@ -619,7 +616,12 @@ The term for what these systems face is called \emph{lock contention} and it is 
 
 (in short, unfinished)
 
-Shuffler monitors the lock acquisition times of various executing threads, isolates groups of threads that have similar lock acquisition times, and migrate those threads to the same processor, assuming that those groups of threads may be contending with eachother for the same lock and would both have faster acquisition times if they were colocated.
+Shuffler
+\begin{itemize}
+
+\item Monitors the lock acquisition times of various executing threads
+\item Isolates groups of threads that have similar lock acquisition times, and migrate those threads to the same processor, assuming that those groups of threads may be contending with eachother for the same lock and would both have faster acquisition times if they were colocated.
+\end{itemize}
 
 \end{frame}
 
@@ -629,20 +631,43 @@ Shuffler monitors the lock acquisition times of various executing threads, isola
 
 (in short, unfinished)
 
-ONE REQUIREMENT TO RULE THEM ALL
-EFFICIENCY!!!
+Designed by Jo et al. with manycore processors (specifically the Xeon Phi) in mind.
 
 \linespace
 
-Aims to improve the efficiency of scheduling on linux by gutting the requirements and features of the scheduler.
-A lockless\footnote{In Jo et al. they clarify it is still built on top of the \emph{scheduler core} which still locks in it.} thread scheduler.
+The Xeon and Xeon Phi manycore processors come with varying degrees of cores, from 24 to 76 cores. With such potential for parallelism and as the number of cores rise, any small hitch in a critical system component can lead to significant performance degradation. 
+
+The hithces that they isolated were due to locks emplaced by features and requirements of the CFS scheduler.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{One requirement to rule them all: EFFICIENCY!!!}
+
+FLSCHED Aims to improve the efficiency by removing all locks from the scheduler component. In order to do this, they gutted the requirements and features of the CFS scheduler and simplified.
 
 \linespace
 
-Hey wait. Removing locks in the scheduler itself doesn't necessarily mean that program's threads within the scheduler won't contend for eachother? \textbf{How does it allocate threads?}
+The requirements that they removed are:
 
-It's more efficient though.
+\begin{itemize}
+\item Fairness,
+\item Responsiveness,
+\end{itemize}
 
+The features that they removed were:
+
+\begin{itemize}
+\item Group scheduling
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+FLSCHED is a scheduler implementation without any locks\footnote{In Jo et al. they clarify it is still built on top of the \emph{scheduler core} which still locks in it.}.
+
+\linespace
+Lock contention may exist in FLSCHED, but it isn't a problem in the same way as in Shuffler because none of the cores exist on other processors, there is only one processor, so that latency is not a concern.
 
 \end{frame}
 
@@ -651,26 +676,7 @@ It's more efficient though.
 \begin{frame}
 \frametitle{Conclusions}
 
-\begin{itemize}
-  \item Added developmental plasticity to N-gram GP using Incremental Fitness-based Development (IFD).
-\end{itemize}
-
-\begin{itemize}
-  \item IFD consistently improved N-gram GP performance on suite of test problems.
-  
-  \linespace
-  
-  \item ``Knocking out'' IFD shows it's valuable in all phases, even if it wasn't used earlier in a run.
-
-  \linespace
-  
-  \item IFD generates more complex, less converged probability tables.
-  \item IFD generates more modules/loops \& uses more low-probability paths.
-\end{itemize}
-
-\begin{itemize}
-  \item Currently exploring applications to dynamic environments.
-\end{itemize}
+todo
 
 \end{frame}
 
@@ -678,18 +684,6 @@ It's more efficient though.
 \frametitle{Thanks!}
 
 Thank you for your time and attention!
-	
-\linespace
-\linespace
-
-Contact:  
-\begin{itemize}
-	\item \texttt{mcphee@morris.umn.edu}
-	\item \url{http://www.morris.umn.edu/~mcphee/}
-\end{itemize}
-
-\linespace
-\linespace
 
 \begin{center}
 {\huge Questions?}
