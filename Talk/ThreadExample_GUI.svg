@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="143mm"
+   height="142mm"
+   viewBox="0 0 143 142"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.1 r15371"
+   sodipodi:docname="ThreadExample_GUI.svg"
+   inkscape:export-filename="C:\Users\dansa\Senior_seminar_templates\Talk\Illustrations\ThreadExample_GUI.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96">
+  <defs
+     id="defs2">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path4508"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker4905"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path4903"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lstart"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path4505"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(0.8,0,0,0.8,10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-7"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path4508-2"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#ffffff;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#2c3c43"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="436.50246"
+     inkscape:cy="275.96505"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1849"
+     inkscape:window-height="1057"
+     inkscape:window-x="1983"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-155)">
+    <rect
+       style="fill:#67d20e;fill-opacity:1;stroke:none;stroke-width:0.8869701;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4485"
+       width="19.61348"
+       height="8.2020016"
+       x="-43.569214"
+       y="172.76706"
+       transform="scale(-1,1)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.70574045px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660878"
+       x="0.32203335"
+       y="175.61993"
+       id="text4489"><tspan
+         sodipodi:role="line"
+         id="tspan4487"
+         x="0.32203335"
+         y="175.61993"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878">main()</tspan><tspan
+         sodipodi:role="line"
+         x="0.32203335"
+         y="182.78033"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan4499">thread</tspan></text>
+    <rect
+       style="fill:#67d20e;fill-opacity:1;stroke:none;stroke-width:0.57027066;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4491"
+       width="19.613483"
+       height="91.694443"
+       x="-96.347282"
+       y="180.96906"
+       transform="scale(-1,1)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.70574045px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660878"
+       x="52.172386"
+       y="188.10124"
+       id="text4495"><tspan
+         sodipodi:role="line"
+         id="tspan4493"
+         x="52.172386"
+         y="188.10124"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#fff931;fill-opacity:1;stroke-width:0.35660878">spawns</tspan><tspan
+         sodipodi:role="line"
+         x="52.172386"
+         y="195.23341"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan6237">Window</tspan><tspan
+         sodipodi:role="line"
+         x="52.172386"
+         y="202.39381"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan4497">thread</tspan></text>
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:0.35660878px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 43.569225,180.96907 H 76.733813"
+       id="path4901"
+       inkscape:connector-curvature="0" />
+    <rect
+       style="fill:#67d20e;fill-opacity:1;stroke:none;stroke-width:0.21160446;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4963"
+       width="18.900261"
+       height="24.249393"
+       x="-142.89516"
+       y="211.99403"
+       transform="scale(-1,1)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.26434994px;line-height:1.25;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';letter-spacing:0px;word-spacing:0px;fill:#67d20e;fill-opacity:1;stroke:none;stroke-width:0.35660878"
+       x="-0.74292129"
+       y="165.63489"
+       id="text4998"><tspan
+         sodipodi:role="line"
+         id="tspan4996"
+         x="-0.74292129"
+         y="165.63489"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#67d20e;fill-opacity:1;stroke-width:0.35660878">Process Begins</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.70574045px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660878"
+       x="100.65726"
+       y="219.46748"
+       id="text4495-6"><tspan
+         sodipodi:role="line"
+         id="tspan4493-9"
+         x="100.65726"
+         y="219.46748"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#fff805;fill-opacity:1;stroke-width:0.35660878">spawns</tspan><tspan
+         sodipodi:role="line"
+         x="100.65726"
+         y="226.59966"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan6239">Event</tspan><tspan
+         sodipodi:role="line"
+         x="100.65726"
+         y="233.76006"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan4497-5">thread</tspan><tspan
+         sodipodi:role="line"
+         x="100.65726"
+         y="240.92046"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan5021" /><tspan
+         sodipodi:role="line"
+         x="100.65726"
+         y="248.05264"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:0;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan5033">(e.g. custom</tspan><tspan
+         sodipodi:role="line"
+         x="100.65726"
+         y="255.18481"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:0;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan6372">Button-Press logic)</tspan></text>
+    <path
+       style="fill:none;stroke:#ffffff;stroke-width:0.35660878px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend-7)"
+       d="M 95.822846,211.99403 H 123.99492"
+       id="path4901-4"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:14.26434994px;line-height:1.25;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';letter-spacing:0px;word-spacing:0px;fill:#ff0000;fill-opacity:1;stroke:none;stroke-width:0.35660878"
+       x="-0.55897194"
+       y="296.36926"
+       id="text4998-0"><tspan
+         sodipodi:role="line"
+         id="tspan4996-8"
+         x="-0.55897194"
+         y="296.36926"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ff0000;fill-opacity:1;stroke-width:0.35660878">Process Ends</tspan></text>
+    <rect
+       style="fill:#d2380e;fill-opacity:1;stroke:none;stroke-width:0.06701312;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6168"
+       width="19.613483"
+       height="3.2209725"
+       x="76.733795"
+       y="276.14905" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:5.70574045px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660878"
+       x="38.763153"
+       y="276.58246"
+       id="text4489-5"><tspan
+         sodipodi:role="line"
+         x="38.763153"
+         y="276.58246"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan4499-7">Window Close</tspan><tspan
+         sodipodi:role="line"
+         x="38.763153"
+         y="283.74286"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:5.70574045px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660878"
+         id="tspan6193" /></text>
+    <rect
+       style="fill:#cb8e00;fill-opacity:1;stroke:none;stroke-width:0.06971119;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6168-9"
+       width="19.613483"
+       height="3.4855564"
+       x="23.955732"
+       y="180.96906" />
+    <rect
+       style="fill:#cb8e00;fill-opacity:1;stroke:none;stroke-width:0.06843197;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6168-9-6"
+       width="18.900257"
+       height="3.4855564"
+       x="123.99491"
+       y="236.24342" />
+    <rect
+       style="fill:#cb8e00;fill-opacity:1;stroke:none;stroke-width:0.06971119;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect6168-9-0"
+       width="19.613483"
+       height="3.4855564"
+       x="76.733795"
+       y="272.66351" />
+    <rect
+       style="fill:#67d20e;fill-opacity:1;stroke:none;stroke-width:0.34965664;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4485-9"
+       width="5"
+       height="5"
+       x="-6.2855806"
+       y="223.95412"
+       transform="scale(-1,1)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.58611155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660881"
+       x="8.3480968"
+       y="228.1915"
+       id="text4495-0"><tspan
+         sodipodi:role="line"
+         x="8.3480968"
+         y="228.1915"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.58611155px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660881"
+         id="tspan4497-7">Active Thread</tspan></text>
+    <rect
+       style="fill:#cb8e00;fill-opacity:1;stroke:none;stroke-width:0.34965664;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4485-9-0"
+       width="5"
+       height="5"
+       x="-6.2855806"
+       y="230.54163"
+       transform="scale(-1,1)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.58611155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660884"
+       x="8.3480968"
+       y="234.77898"
+       id="text4495-0-2"><tspan
+         sodipodi:role="line"
+         x="8.3480968"
+         y="234.77898"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.58611155px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660884"
+         id="tspan4497-7-9">Disposing Thread</tspan></text>
+    <rect
+       style="fill:#d2380e;fill-opacity:1;stroke:none;stroke-width:0.34965664;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect4485-9-0-6"
+       width="5"
+       height="5"
+       x="-6.2855806"
+       y="237.12914"
+       transform="scale(-1,1)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:4.58611155px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.35660884"
+       x="8.3480988"
+       y="241.36649"
+       id="text4495-0-2-0"><tspan
+         sodipodi:role="line"
+         x="8.3480988"
+         y="241.36649"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.58611155px;font-family:'Trebuchet MS';-inkscape-font-specification:'Trebuchet MS';fill:#ffffff;fill-opacity:1;stroke-width:0.35660884"
+         id="tspan4497-7-9-1">Ending Process</tspan></text>
+  </g>
+</svg>
