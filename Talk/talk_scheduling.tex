@@ -140,11 +140,12 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \begin{columns}
 \begin{column}{0.72\textwidth}
 \begin{itemize}
-\item Lozi et al. found four bugs in Linux thread scheduler, fixed them~\cite{Lozi:2016}
+\item In \emph{A Decade of Waster Cores}
+\item Lozi et al. Found four bugs in Linux thread scheduler, fixed them
 
 \linespace
 
-\item Previously undetected, required the development of new tools to notice them
+\item Previously undetected, required the development of new tools
 
 \end{itemize}
 \end{column}
@@ -172,7 +173,7 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 
 \linespace
 \end{itemize}
-
+\begin{figure}
 \begin{table}
 	\centering
 	\begin{tabular}{| l | r |}
@@ -184,6 +185,8 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 	The Missing Scheduling Domains bug & 29.68x \\ \hline
 \end{tabular}
 \end{table}
+\caption*{from Lozi et al.~\cite{Lozi:2016}}
+\end{figure}
 
 \end{frame}
 
@@ -207,7 +210,7 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 	\begin{itemize}
 		\item \emph{Single-core processor} (one processing unit) 
 		\item \emph{Multicore processor} (two or more processing units)
-		\item \emph{Manycore processor} (\~20 or more processing units)
+		\item \emph{Manycore processor} (\textasciitilde20 or more processing units)
 	\end{itemize}
 	\linespace
 	\item Multiple cores allows processor to perform multiple tasks concurrently on each core
@@ -276,6 +279,17 @@ What if I ask you all a question right now?
 \end{center}
 \end{frame}
 
+
+\begin{frame}
+\begin{center}
+What if I ask you all a question right now?
+\linespace
+If all answered at once, chaos!
+\linespace
+Raise hands to control who gets to talk, this is like locks!
+\end{center}
+\end{frame}
+
 \begin{frame}
 \frametitle{Synchronicity and Locks}
 
@@ -320,6 +334,8 @@ What if I ask you all a question right now?
 \begin{itemize}
 \item The scheduler \emph{switches} active threads on cores by saving and restoring thread and processor state information.
 \item These switches are called \emph{context switches}
+\linespace
+\item Process context switches are more expensive
 \end{itemize}
 \end{frame}
 
@@ -499,11 +515,9 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 
 \begin{itemize}
 
-
-
 \item When two threads repeatedly contend for one lock, both threads are frequently waiting for each other to release
 \linespace
-\item If the two threads are located on separate processors, this problem is compounded by reduced locality
+\item If the two threads are located on separate processors, problem is compounded by reduced locality
 \linespace
 \item Further, when both of the threads repeatedly modify the data corresponding to their lock, the cache of both processors must continue to update each other
 \linespace
@@ -522,7 +536,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 	\item Kumar et al. wanted to create a scheduler that did!
 	\item Used Solaris scheduler as base
 	\linespace
-	\item \textbf{Strategy}: Migrate threads whose locks are contending near each other
+	\item \textbf{Strategy}: Migrate threads whose locks are contending so they are near each other
 	\linespace
 	
 	\item How do you determine which threads' locks are contending?
@@ -554,8 +568,8 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 \item Kumar et al. compared the efficiency of Shuffler vs Solaris scheduler
 \item Used programs from four benchmarks to gather data
 
+\begin{figure}
 \begin{columns}
-
 \begin{column}{0.5\textwidth}
 \begin{table}
 	\centering
@@ -572,11 +586,11 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 		\emph{PB} & 13.0\% \\ \hline
 		\emph{VL} & 12.8\% \\ \hline
 		\emph{FS} & 12.0\% \\ \hline
-		
 \end{tabular}
 \end{table}
 \end{column}
 \begin{column}{0.5\textwidth}
+
 	\begin{table}
 	\centering
 	\begin{tabular}{| c | r |}
@@ -594,8 +608,12 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 		\emph{RT} & 4.0\% \\ \hline
 \end{tabular}
 \end{table}
+
+
 \end{column}
 \end{columns}
+\caption*{from Kumar et al.~\cite{Kumar:2014}}
+\end{figure}
  
 \end{itemize}
 
@@ -648,14 +666,13 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 \frametitle{FLSCHED Performance}
 \begin{itemize}
 
-\item Like in Shuffler, used a benchmark of various problems
+\item Used 8 of 9 programs the NAS Parallel Benchmark (NPB) 
 
 \end{itemize}
 \begin{figure}
-\caption*{Operations per second (OPS) relative to CFS}
+\caption*{Operations per second (OPS) relative to CFS, from Jo et al.~\cite{Jo:2017}}
 \centering
 \includegraphics[width=0.95\textwidth]{Illustrations/FLSCHED_OPS.png}
-
 \end{figure}
 \end{frame}
 
@@ -707,19 +724,20 @@ K.~Kumar and P.~Rajiv and G.~Laxmi and N.~Bhuyan
 \newblock Shuffling: A framework for lock contention aware thread scheduling for multicore multiprocessor systems
 \newblock In 2014 23rd International Conference on Parallel Architecture and Compilation Techniques {\em3 PACT }, pages 289--300, 2014.
 
+  
+\end{thebibliography}
+\end{frame} 
+\begin{frame}
+
+\begin{thebibliography}{lskdjf}
+
 \bibitem{Lozi:2016}
 Lozi, Jean-Pierre and Lepers, Baptiste and Funston, Justin and Gaud, Fabien and Qu{\'e}ma, Vivien and Fedorova, Alexandra
 \newblock The {Linux} Scheduler: A Decade of Wasted Cores
 \newblock In Proceedings of the Eleventh European Conference on Computer Systems {\em EuroSys '16}, pages 1:1--1:16, London, United Kingdom, 2016. ACM.
-
   
 \end{thebibliography}
-
-\linespace
-\begin{center}
-	See the GECCO '09 paper for additional references.
-	\end{center}
-\end{frame} 
+\end{frame}
 
 \end{document}
 
