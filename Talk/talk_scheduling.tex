@@ -13,6 +13,7 @@
 \usepackage{listings}
 \usepackage[T1]{fontenc} 
 \usepackage{caption}
+\usepackage{algorithm2e}
 
 % Or whatever. Note that the encoding and the font should match. If T1
 % does not look nice, try deleting the line with the fontenc.
@@ -91,16 +92,14 @@
   \frametitle{Introduction}
   
 \begin{itemize}
-	\item \emph{Thread scheduler}: system component that manages the processing programs receive in a given time
+	\item \emph{Thread scheduler:} system component that manages the processing programs receive in a given time
   	\item Always running, so it must be efficient
   	
 	\linespace
 	
 	\item Pre-2000 single-core era, scheduling was easy 
-	\item Near end, problem considered solved by Linux community
-
+	\item Before multiple-core architecture, problem considered solved by Linux community
 \end{itemize}
-
 \end{frame}
 
 
@@ -119,7 +118,7 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \frametitle{Introduction}
 
 \begin{itemize}
-\item Popular hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex
+\item Popular hardware changed rapidly throughout the 2000s
 
 \linespace
 
@@ -127,7 +126,11 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 
 \linespace
 
-\item Unfortunately, this increasing complexity led to bugs
+\item These developments complicated thread scheduler implementation
+
+\linespace
+
+\item Unfortunately, this complexity led to bugs that have been present for a decade
 \end{itemize}
 \end{frame}
 
@@ -137,99 +140,51 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \begin{columns}
 \begin{column}{0.72\textwidth}
 \begin{itemize}
-	\item Lozi et al. found four bugs in the Linux thread scheduler and fixed them~\cite{Lozi:2016}
+\item Lozi et al. found four bugs in the Linux thread scheduler and fixed them~\cite{Lozi:2016}
 
 \linespace
 
 \item Previously undetected, required the development of new tools to notice them
 
-\linespace
-
-	\item The Scheduling Group Construction bug
-	\item The Group Imbalance bug
-	\item The Overload-on-Wakeup bug
-	\item The Missing Scheduling Domains bug
 \end{itemize}
 \end{column}
-\begin{column}[b]{0.28\textwidth} %Why does to[p] make the figure on the bottom and [b]ottom make the figure on the top.....
+\begin{column}{0.28\textwidth} %Why does to[p] make the figure on the bottom and [b]ottom make the figure on the top.....
 \begin{figure}
 \centering
 \includegraphics[width=0.95\textwidth]{Illustrations/ant_from_pexels.png}
 \caption*{https://goo.gl/3wsfVU}
 \end{figure}
+
 \end{column}
 \end{columns}
+
 \end{frame}
 
 \begin{frame}
-\frametitle{NAS Parallel Benchmark (NPB)}
+\frametitle{A Decade of Wasted Cores}
+
 
 \begin{itemize}
 
-\item Set of 9 computational applications that heavily depend on threading
+\item Lozi et al. compared performance benchmarks ran on \textbf{buggy} and \textbf{fixed} Linux scheduler implementations
+
+\item Below are average performance improvements
+
 \linespace
-\item Names: \textit{bt, cg, ep, ft, is, lu, mg, sp, ua}
-\linespace
-\item Executes problems within scheduler, records execution times
-
-\item Will refer to this benchmark later on
-
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Scheduling Group Construction bugfix results}
-
-\begin{table}
-	\centering
-	\begin{tabular}{| c | c | c | c |}
-		\hline			
-	  	\textbf{Application} & \textbf{With bug (sec)} & \textbf{Fixed (sec)} & \textbf{Improvement} \\ \hline
-		\emph{is} & 271 & 202 & 1.33x \\ \hline
-		\emph{mg} & 49 & 24 & 2.03x \\ \hline
-		\emph{lu} & 1040 & 38 & 27x \\ \hline
-	\end{tabular}
-	\caption{"NPB applications with least, median and most improvement between a bugged and fixed scheduler"~\cite{Lozi:2016}}
-\end{table}
-
-\end{frame}
-
-\begin{frame}
-\frametitle{Group Imbalance and Overload-on-Wakeup bugfixes}
-\begin{table}
-	\centering
-	\begin{tabular}{| c | l | l |}
-		\hline			
-	  	\textbf{Bug Fixes} & \textbf{Full Database benchmark} \\ \hline
-		\emph{No bugfix} & 542.9s \\ \hline
-		\emph{Group Imbalance} & 512.8s (1.05x) \\ \hline
-		\emph{Overload-on-Wakeup} & 471.1s (1.13x) \\ \hline
-		\emph{Both} & 465.6s (1.14x) \\ \hline
-	\end{tabular}
-	\caption{"Impact of these bug fixes on a popular commercial database (values averaged after five runs.)"~\cite{Lozi:2016}}
-\end{table}
-\begin{itemize}
-	\item They disabled and re-enabled a core before each run of the benchmark
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Missing Scheduling Domain bugfix results}
-\begin{itemize}
-	\item Occurs rarely, but easily reproducible
 \end{itemize}
 
 \begin{table}
 	\centering
-	\begin{tabular}{| c | c | c | c |}
-		\hline			
-	  	\textbf{Application} & \textbf{With bug (sec)} & \textbf{Fixed (sec)} & \textbf{Improvement} \\ \hline
-		\emph{ep} & 72 & 18 & 4.0x \\ \hline
-		\emph{mg} & 81 & 9 & 9.03x \\ \hline
-		\emph{lu} & 2196 & 16 & 137.59x \\ \hline	
-	\end{tabular}
-	\caption{NPB applications with least, median and most improvement between a bugged and fixed scheduler~\cite{Lozi:2016}}
+	\begin{tabular}{| l | r |}
+	\hline
+	\textbf{Bug title} & \textbf{Improvement} \\ \hline
+	The Scheduling Group Construction bug & 5.96x \\ \hline
+	The Group Imbalance bug & 1.05x \\ \hline
+	The Overload-on-Wakeup bug & 1.13x\\ \hline
+	The Missing Scheduling Domains bug & 29.68x \\ \hline
+\end{tabular}
 \end{table}
+
 \end{frame}
 
 \subsection*{Outline}
@@ -248,11 +203,11 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 	\begin{itemize}
 	\item Responsible for executing code
 	\linespace
-	\item Contain a number of cores:	
+	\item Contain a number of cores:
 	\begin{itemize}
 		\item \emph{Single-core processor} (one processing unit) 
 		\item \emph{Multicore processor} (two or more processing units)
-		\item \emph{Manycore processor} (20 or more processing units)
+		\item \emph{Manycore processor} (~20 or more processing units)
 	\end{itemize}
 	\linespace
 	\item A processor with multiple cores allows it to perform tasks concurrently on each core
@@ -266,15 +221,14 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 	\begin{column}{0.5\textwidth}
 		\linespace
 		\begin{itemize}
-		\item Imagine you're using photoshop but it has one thread
-		\item You load a large image and perform an expensive filter operation
+		\item Imagine you're using photoshop, but assume one thread
+		\item Say you load a large image and perform an expensive filter operation
 		\end{itemize}
 		\end{column}
 	\begin{column}{0.5\textwidth}
 		\begin{figure}
 		\includegraphics[width=0.95\textwidth]{Illustrations/ThreadExample_GUI_Part1}
-		\label{fig:domains}
-		\caption{Running a filter operation in a hypothetical single-threaded version of photoshop}
+		\label{fig:single_photoshop}
 		\end{figure}
 	\end{column}
 \end{columns}
@@ -284,15 +238,14 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \begin{frame}
 \frametitle{Using Threads}
 
-\begin{itemize}
-	\item \emph{Threads} allow a program to run multiple independent tasks at the same time
-\end{itemize}
-
 
 \begin{columns}
 	\begin{column}{0.5\textwidth}
 		\begin{itemize}
+	
+		\item \emph{Threads} allow programs to run multiple independent tasks concurrently	
 		
+		\linespace
 		\linespace
 		
 		\item Useful for programs:
@@ -307,65 +260,38 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 		\begin{figure}
 		\includegraphics[width=0.95\textwidth]{Illustrations/ThreadExample_GUI_Part2}
 		\label{fig:domains}
-		\caption{Example GUI Program. \textbf{Three} threads are created within \textbf{one} process}
+		\caption*{Example GUI Program. \\ \textbf{Three} threads are created within \textbf{one} process}
 		\end{figure}
 	\end{column}
 \end{columns}
 
 \end{frame}
 
-\begin{frame}
-\frametitle{Race Conditions}
 
-\begin{itemize}
-	\item Problem in multithreaded systems.
-\end{itemize}
-
-\linespace
-
-\begin{quote}
-A timing-dependent error in thread coordination that may result in threads computing incorrect results
-\end{quote}
-\rightline{{\rm --- Saltzer and Kaashoek [W]}}
-
-\end{frame}
-
-\begin{frame}
-\frametitle{Race Condition Example}
-	\begin{figure}
-		\includegraphics[width=0.8\textwidth]{Illustrations/RaceCondition}
-		\label{fig:racecondition}
-	\end{figure}
-
-\end{frame}
 
 \subsection[Locks]{Synchronicity and Locks}
 
+\begin{frame}
+\begin{center}
+What if I ask you all a question right now?
+\end{center}
+\end{frame}
 
 \begin{frame}
 \frametitle{Synchronicity and Locks}
 
 \begin{itemize}
-	\item Race conditions can be fixed by controlling access to shared data.
 	\item Control is achieved by employing locks
 	
 	\linespace
 	
-	\item \emph{Locks} secure objects or data shared between thread so that only one thread can read and write to it at one time
+	\item \emph{Locks} secure objects or data shared between threads so that only one thread can read and write to it at one time
 
 	\linespace
 
 	\item When a thread \emph{locks} a lock it \textbf{acquires} the lock
 	\item When a thread \emph{unlocks} a lock it \textbf{releases} the lock
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Lock Example}
-	\begin{figure}
-		\includegraphics[width=0.7\textwidth]{Illustrations/Lock}
-		\label{fig:lock}
-	\end{figure}
 \end{frame}
 
 \subsection[Cache]{Thread State and Cache}
@@ -380,10 +306,13 @@ A timing-dependent error in thread coordination that may result in threads compu
 \end{itemize}
 
 \item Thread State
-
 \begin{itemize}
 	\item[] Scheduler uses this information to pause and resume a thread's execution
 \end{itemize}
+
+\linespace
+
+\item Note: Process states are much heavier than thread states
 \end{itemize}
 \end{frame}
 
@@ -392,10 +321,8 @@ A timing-dependent error in thread coordination that may result in threads compu
 \begin{itemize}
 \item The scheduler \emph{switches} active threads on cores by saving and restoring thread and processor state information.
 \item These switches are called \emph{context switches}
-\item Scheduler performance 
 \end{itemize}
 \end{frame}
-
 
 \begin{frame}
 \frametitle{Cache}
@@ -463,7 +390,7 @@ A timing-dependent error in thread coordination that may result in threads compu
 \item Spend a \emph{fair} amount of runtime on all threads
 \linespace
 
-\item Designed with Responsiveness, Fairness, and load-balancing in mind.
+\item Designed with responsiveness and fairness in mind.
 
 
 \end{itemize}
@@ -506,12 +433,12 @@ A timing-dependent error in thread coordination that may result in threads compu
 
 \begin{itemize}
 
-	\item Since process states are heaver than thread states, context switches between threads of different processes are more expensive
+	\item Process states heavier than thread states, so context switches between threads of different processes are more expensive
 
 	\linespace
 
 	\item If cores shared a runqueue, access and changes need to be synchronous and cache-coherent
-	\item This would slow the system to a crawl
+	\item Would slow the system to crawl
 	\item So each core has its own runqueue and threads
 \end{itemize}
 
@@ -525,32 +452,27 @@ A timing-dependent error in thread coordination that may result in threads compu
 
 \section[New Schedulers]{Two New Schedulers}
 
-
 \begin{frame}
-
 \frametitle{Shuffler and FLSCHED}
+\begin{itemize}
+\linespace
+
+\item Both schedulers aim to solve the same problem, but for different architectures
 
 \linespace
 
-Both schedulers aim to solve the same problem, but for different architectures.
+\item \textbf{Problem:} Adding more threads to certain parallel computing applications on CFS makes the application operate slower rather than faster!
 
 \linespace
 
+\item Architectures:
+\end{itemize}
 \begin{table}
-
 \begin{tabular}{l c l}
-Shuffler & $\rightarrow$ & multiprocessor multicore \\
-FLSCHED & $\rightarrow$ & single-chip manycore processor\\
+Shuffler & $\rightarrow$ & \textit{multiprocessor multicore} \\
+FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 \end{tabular}
-
 \end{table}
-
-\linespace
-\textbf{Problem:} Adding more threads to parallel computing applications on CFS makes the application operate slower rather than faster!
-
-\linespace
-
-The term for what these systems face is called \emph{lock contention} and it is to blame for the high acquisition times.
 
 \end{frame}
 
@@ -558,21 +480,124 @@ The term for what these systems face is called \emph{lock contention} and it is 
 \begin{frame}
 \frametitle{Shuffler}
 
-By researchers Kumar et al.
+\begin{itemize}
+
+
+\item Researchers Kumar et al. measured lock times of massively parallel applications
+\item \emph{Lock times}: amount of time process spends waiting for locks
 
 \linespace
 
+\item Found that massively parallel shared-memory programs experienced high lock times.
+
+
+\end{itemize}
 
 \end{frame}
+
 \begin{frame}
+\frametitle{Lock Contention}
 
-(in short, unfinished)
-
-Shuffler
 \begin{itemize}
 
-\item Monitors the lock acquisition times of various executing threads
-\item Isolates groups of threads that have similar lock acquisition times, and migrate those threads to the same processor, assuming that those groups of threads may be contending with eachother for the same lock and would both have faster acquisition times if they were colocated.
+
+
+\item When two threads repeatedly contend for one lock, both threads are frequently waiting for each other to release
+\linespace
+\item If the two threads are located on separate processors, this problem is compounded by reduced locality
+\linespace
+\item Further, when both of the threads repeatedly modify the data corresponding to their lock, the cache of both processors must continue to update each other
+\linespace
+\item High \emph{lock contention}
+
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Shuffler}
+\begin{itemize}
+	\item CFS not mindful of lock contention or parent processes when choosing cores for threads
+	
+	\item Kumar et al. wanted to create a scheduler that did!
+	\item Used Solaris scheudler as base
+	\linespace
+	\item \textbf{Strategy}: Migrate threads whose locks are contending near each other
+	\linespace
+	
+	\item How do you determine which threads' locks are contending?
+	\item Contending threads have similar lock acquisition times
+	
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\begin{algorithm}[H]
+	\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+	\Input{N: Number of threads;\\
+	C: Number of Processors.}
+
+	\Repeat{application terminates}{
+		$\textbf{i. Monitor Threads}$ -- sample lock times of N threads.\\
+		\If{lock times exceed threshold}{
+			$\textbf{ii. Form Thread Groups}$ -- sort threads according to lock times and divide them into C groups. \\
+			$\textbf{iii. Perform Shuffling}$ -- shuffle threads to establish newly computed thread groups.
+		}
+	}		
+\end{algorithm}
+\end{frame}
+
+\begin{frame}
+\frametitle{Shuffler Performance}
+
+\begin{itemize}
+\item Kumar et al. compared the efficiency of Shuffler vs Solaris scheduler
+\item Used programs from four benchmarks to gather data.
+
+\begin{columns}
+
+\begin{column}{0.5\textwidth}
+\begin{table}
+	\centering
+	\begin{tabular}{| c | r |}
+	\hline
+	\textbf{Program} & \textbf{\% Improvement} \\ \hline
+	\emph{BT} & 54.1\% \\ \hline
+		\emph{SC} & 29.0\% \\ \hline
+		\emph{RX} & 19.0\% \\ \hline
+		\emph{JB} & 14.0\% \\ \hline
+		\emph{OC} & 13.4\% \\ \hline
+		\emph{AL} & 13.2\% \\ \hline
+		\emph{AS} & 13.0\% \\ \hline
+		\emph{PB} & 13.0\% \\ \hline
+		\emph{VL} & 12.8\% \\ \hline
+		\emph{FS} & 12.0\% \\ \hline
+		
+\end{tabular}
+\end{table}
+\end{column}
+\begin{column}{0.5\textwidth}
+	\begin{table}
+	\centering
+	\begin{tabular}{| c | r |}
+	\hline
+	\textbf{Program} & \textbf{\% Improvement} \\ \hline
+		\emph{FM} & 10.7\% \\ \hline
+		\emph{AM} & 9.3\% \\ \hline
+		\emph{GL} & 9.1\% \\ \hline
+		\emph{EQ} & 9.0\% \\ \hline
+		\emph{MG} & 8.8\% \\ \hline
+		\emph{FA} & 6.0\% \\ \hline
+		\emph{WW} & 5.2\% \\ \hline
+		\emph{SM} & 4.7\% \\ \hline
+		\emph{GA} & 4.0\% \\ \hline
+		\emph{RT} & 4.0\% \\ \hline
+\end{tabular}
+\end{table}
+\end{column}
+\end{columns}
+ 
 \end{itemize}
 
 \end{frame}
@@ -581,55 +606,79 @@ Shuffler
 \begin{frame}
 \frametitle{FLSCHED: The Lockless Monster}
 
-(in short, unfinished)
+\begin{itemize}
+	\item Designed by Jo et al. with manycore processors in mind, particularly the Xeon Phi.
 
-Designed by Jo et al. with manycore processors (specifically the Xeon Phi) in mind.
 
 \linespace
 
-The Xeon and Xeon Phi manycore processors come with varying degrees of cores, from 24 to 76 cores. With such potential for parallelism and as the number of cores rise, any small hitch in a critical system component can lead to significant performance degradation. 
+\item The Xeon and Xeon Phi have 24 to 76 cores.
+\linespace
+\item One processor, so cache looks different than system that would use Shuffler
+\linespace
+\item With such parallelism, small pauses significantly reduce efficiency
+\linespace
 
-The hitches that they isolated were due to locks emplaced by features and requirements of the CFS scheduler.
+\item In the CFS, pauses come from locks necessitated by its features and requirements.
 
+\end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{One requirement to rule them all: EFFICIENCY!!!}
-
-FLSCHED Aims to improve the efficiency by removing all locks from the scheduler component. In order to do this, they gutted the requirements and features of the CFS scheduler and simplified.
-
-\linespace
-
-The requirements that they removed are:
+\frametitle{One requirement to rule them all: EFFICIENCY!}
 
 \begin{itemize}
-\item Fairness,
-\item Responsiveness,
-\end{itemize}
+\item FLSCHED Improves efficiency by removing all locks from the scheduler implementation
 
-The features that they removed were:
+\item Gutted requirements and features of CFS and simplified
+\linespace
+
+\item Requirements they removed were \textbf{Fairness} and \textbf{Responsiveness}
+
+\item Context switches requests delayed to reduce chance another thread steals the core in hope thread reactivates
+
+\item Threads never forcefully preempt, instead join runqueue with high priority
+
+\item Removed scheduler statistics reporting capabilities
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{FLSCHED Performance}
+\begin{itemize}
+
+\item Like in Shuffler, used a benchmark of various problems.
+
+\end{itemize}
+\begin{figure}
+\caption*{Operations per second (OPS) relative to CFS}
+\centering
+\includegraphics[width=0.95\textwidth]{Illustrations/FLSCHED_OPS.png}
+
+\end{figure}
+\end{frame}
+
+\section[Conclusion]{Conclusion}
+
+\begin{frame}
+\frametitle{Conclusion}
 
 \begin{itemize}
-\item Group scheduling
-\end{itemize}
-
-\end{frame}
-
-\begin{frame}
-FLSCHED is a scheduler implementation without any locks\footnote{In Jo et al. they clarify it is still built on top of the \emph{scheduler core} which still locks in it.}.
+\item Thread scheduling is an important problem and becomes more relevant as number of cores increase
 
 \linespace
-Lock contention may exist in FLSCHED, but it isn't a problem in the same way as in Shuffler because none of the cores exist on other processors, there is only one processor, so that latency is not a concern.
 
-\end{frame}
+\item System architecture can have surprising complexity in its effect on efficiency
 
-\section[Conclusions]{Conclusions}
+\linespace
 
-\begin{frame}
-\frametitle{Conclusions}
+\item CFS tries to be the go-to scheduler for all problems, but can't
 
-todo
+\item Does well, but when you need some extra push there are powerful alternatives available.
 
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -650,18 +699,20 @@ Thank you for your time and attention!
 \begin{thebibliography}{lskdjf}
 
 \bibitem{Jo:2017}
-H.~Jo, W.~Kang, C.~Min, and T.~Kim.
-
+Jo, Heeseung and Kang, Woonhak and Min, Changwoo and Kim, Taesoo.
 \newblock FLsched: A lockless and lightweight approach to OS scheduler for Xeon Phi.
+\newblock In Proceedings of the 8th Asia-Pacific Workshop on Systems {\em3 APSys '17}, pages 8:1--8:8, Mumbai, India, 2017. ACM.
 
-\newblock In G\"unther Raidl, \emph{et al}, editors, {\em GECCO '09}, pages 1019--1026, Montr\'eal, Qu\'ebec, Canada, 2009.
+\bibitem{Kumar:2014}
+K.~Kumar and P.~Rajiv and G.~Laxmi and N.~Bhuyan
+\newblock Shuffling: A framework for lock contention aware thread scheduling for multicore multiprocessor systems
+\newblock In 2014 23rd International Conference on Parallel Architecture and Compilation Techniques {\em3 PACT }, pages 289--300, 2014.
 
 \bibitem{Lozi:2016}
-R.~Poli and N.~McPhee.
-\newblock A linear estimation-of-distribution {GP} system.
-\newblock In M.~O'Neill, \emph{et al}, editors, {\em EuroGP 2008}, volume
-  4971 of {\em LNCS}, pages 206--217, Naples,
-  26-28 Mar. 2008. Springer.
+Lozi, Jean-Pierre and Lepers, Baptiste and Funston, Justin and Gaud, Fabien and Qu{\'e}ma, Vivien and Fedorova, Alexandra
+\newblock The {Linux} Scheduler: A Decade of Wasted Cores
+\newblock In Proceedings of the Eleventh European Conference on Computer Systems {\em EuroSys '16}, pages 1:1--1:16, London, United Kingdom, 2016. ACM.
+
   
 \end{thebibliography}
 
