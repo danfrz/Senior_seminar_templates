@@ -92,13 +92,13 @@
   \frametitle{Introduction}
   
 \begin{itemize}
-	\item \emph{Thread scheduler:} system component that manages the processing programs receive in a given time
+	\item \emph{Thread scheduler:} system component that manages the processing programs receive
   	\item Always running, so it must be efficient
   	
 	\linespace
 	
 	\item Pre-2000 single-core era, scheduling was easy 
-	\item Before multiple-core architecture, problem considered solved by Linux community
+	\item Led majority of Linux community to believe problem solved 
 \end{itemize}
 \end{frame}
 
@@ -126,11 +126,11 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 
 \linespace
 
-\item These developments complicated thread scheduler implementation
+\item Hardware changes complicated thread scheduler implementation
 
 \linespace
 
-\item Unfortunately, this complexity led to bugs that have been present for a decade
+\item Complexity led to bugs that have been present for a decade
 \end{itemize}
 \end{frame}
 
@@ -140,7 +140,7 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \begin{columns}
 \begin{column}{0.72\textwidth}
 \begin{itemize}
-\item Lozi et al. found four bugs in the Linux thread scheduler and fixed them~\cite{Lozi:2016}
+\item Lozi et al. found four bugs in Linux thread scheduler, fixed them~\cite{Lozi:2016}
 
 \linespace
 
@@ -207,15 +207,15 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 	\begin{itemize}
 		\item \emph{Single-core processor} (one processing unit) 
 		\item \emph{Multicore processor} (two or more processing units)
-		\item \emph{Manycore processor} (~20 or more processing units)
+		\item \emph{Manycore processor} (\~20 or more processing units)
 	\end{itemize}
 	\linespace
-	\item A processor with multiple cores allows it to perform tasks concurrently on each core
+	\item Multiple cores allows processor to perform multiple tasks concurrently on each core
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Using Threads}
+\frametitle{Multithreading Example}
 
 \begin{columns}
 	\begin{column}{0.5\textwidth}
@@ -236,8 +236,7 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \end{frame}
 
 \begin{frame}
-\frametitle{Using Threads}
-
+\frametitle{Threading}
 
 \begin{columns}
 	\begin{column}{0.5\textwidth}
@@ -281,7 +280,7 @@ What if I ask you all a question right now?
 \frametitle{Synchronicity and Locks}
 
 \begin{itemize}
-	\item Control is achieved by employing locks
+	\item Control achieved by employing locks
 	
 	\linespace
 	
@@ -488,7 +487,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 
 \linespace
 
-\item Found that massively parallel shared-memory programs experienced high lock times.
+\item Found that massively parallel shared-memory programs experienced high lock times
 
 
 \end{itemize}
@@ -521,7 +520,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 	\item CFS not mindful of lock contention or parent processes when choosing cores for threads
 	
 	\item Kumar et al. wanted to create a scheduler that did!
-	\item Used Solaris scheudler as base
+	\item Used Solaris scheduler as base
 	\linespace
 	\item \textbf{Strategy}: Migrate threads whose locks are contending near each other
 	\linespace
@@ -553,7 +552,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 
 \begin{itemize}
 \item Kumar et al. compared the efficiency of Shuffler vs Solaris scheduler
-\item Used programs from four benchmarks to gather data.
+\item Used programs from four benchmarks to gather data
 
 \begin{columns}
 
@@ -607,7 +606,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 \frametitle{FLSCHED: The Lockless Monster}
 
 \begin{itemize}
-	\item Designed by Jo et al. with manycore processors in mind, particularly the Xeon Phi.
+	\item Designed by Jo et al. with manycore processors in mind, particularly the Xeon Phi
 
 
 \linespace
@@ -619,7 +618,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 \item With such parallelism, small pauses significantly reduce efficiency
 \linespace
 
-\item In the CFS, pauses come from locks necessitated by its features and requirements.
+\item In the CFS, pauses come from locks necessitated by its features and requirements
 
 \end{itemize}
 \end{frame}
@@ -649,7 +648,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 \frametitle{FLSCHED Performance}
 \begin{itemize}
 
-\item Like in Shuffler, used a benchmark of various problems.
+\item Like in Shuffler, used a benchmark of various problems
 
 \end{itemize}
 \begin{figure}
@@ -676,7 +675,7 @@ FLSCHED & $\rightarrow$ & \textit{single-chip manycore processor}\\
 
 \item CFS tries to be the go-to scheduler for all problems, but can't
 
-\item Does well, but when you need some extra push there are powerful alternatives available.
+\item Does well, but when you need some extra push there are powerful alternatives available
 
 \end{itemize}
 \end{frame}
