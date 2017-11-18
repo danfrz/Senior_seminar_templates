@@ -91,13 +91,13 @@
   \frametitle{Introduction}
   
 \begin{itemize}
-	\item \emph{Thread scheduler} is an important system component that manages the processing programs receive in a given time
+	\item \emph{Thread scheduler}: system component that manages the processing programs receive in a given time
   	\item Always running, so it must be efficient
   	
 	\linespace
 	
- 	\item Most computers before 2001 were equipped with one processor containing one core
-	\item At the end of the single-processor single-core era (early 2000s) thread scheduling was largely considered a solved problem by the Linux community
+	\item Pre-2000 single-core era, scheduling was easy 
+	\item Near end, problem considered solved by Linux community
 
 \end{itemize}
 
@@ -118,16 +118,17 @@ Linus, Torvals, 2001 \cite{Lozi:2016}
 \begin{frame}
 \frametitle{Introduction}
 
-Popular hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex
+\begin{itemize}
+\item Popular hardware changed rapidly throughout the 2000s and those developments made thread scheduler implementation much more complex
 
 \linespace
 
-One of these driving changes was the increasing affordability and adoption of multicore systems
+\item Increasing affordability and adoption of multicore systems
 
 \linespace
 
-Unfortunately, this increasing complexity led to bugs
-
+\item Unfortunately, this increasing complexity led to bugs
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -135,14 +136,15 @@ Unfortunately, this increasing complexity led to bugs
 
 \begin{columns}
 \begin{column}{0.72\textwidth}
-Lozi et al. found four bugs in the Linux thread scheduler and fixed them~\cite{Lozi:2016}
-
-\linespace
-
-Undetected by pre-existing diagnostic tools, required the development of new tools to notice them
-
-\linespace
 \begin{itemize}
+	\item Lozi et al. found four bugs in the Linux thread scheduler and fixed them~\cite{Lozi:2016}
+
+\linespace
+
+\item Previously undetected, required the development of new tools to notice them
+
+\linespace
+
 	\item The Scheduling Group Construction bug
 	\item The Group Imbalance bug
 	\item The Overload-on-Wakeup bug
@@ -160,19 +162,32 @@ Undetected by pre-existing diagnostic tools, required the development of new too
 \end{frame}
 
 \begin{frame}
-\frametitle{Scheduling Group Construction bugfix results}
+\frametitle{NAS Parallel Benchmark (NPB)}
 
-To gauge improved efficiency, Lozi et al. used a group of 9 computational applications that heavily utilize threads called the \emph{NAS Parallel Benchmark (NPB)}, developed by NASA
+\begin{itemize}
+
+\item Set of 9 computational applications that heavily depend on threading
+\linespace
+\item Names: \textit{bt, cg, ep, ft, is, lu, mg, sp, ua}
+\linespace
+\item Executes problems within scheduler, records execution times
+
+\item Will refer to this benchmark later on
+
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Scheduling Group Construction bugfix results}
 
 \begin{table}
 	\centering
 	\begin{tabular}{| c | c | c | c |}
 		\hline			
-	  	Application & Time w/ bug (sec) & Time w/o bug (sec) & Speedup factor (x) \\ \hline
-		is & 271 & 202 & 1.33 \\ \hline
-		mg & 49 & 24 & 2.03 \\ \hline
-		lu & 1040 & 38 & 27 \\ \hline
-		\hline
+	  	\textbf{Application} & \textbf{With bug (sec)} & \textbf{Fixed (sec)} & \textbf{Improvement} \\ \hline
+		\emph{is} & 271 & 202 & 1.33x \\ \hline
+		\emph{mg} & 49 & 24 & 2.03x \\ \hline
+		\emph{lu} & 1040 & 38 & 27x \\ \hline
 	\end{tabular}
 	\caption{"NPB applications with least, median and most improvement between a bugged and fixed scheduler"~\cite{Lozi:2016}}
 \end{table}
@@ -183,41 +198,39 @@ To gauge improved efficiency, Lozi et al. used a group of 9 computational applic
 \frametitle{Group Imbalance and Overload-on-Wakeup bugfixes}
 \begin{table}
 	\centering
-	\begin{tabular}{| c | c | c |}
+	\begin{tabular}{| c | l | l |}
 		\hline			
-	  	Bug Fixes & TPC-H request \#18 & Full TPC-H benchmark \\ \hline
-		\emph{None} & 55.9s & 542.9s \\ \hline
-		\emph{Group Imbalance} & 48.6s (-13.1\%) & 512.8s (-5.4\%) \\
-		\emph{Overload-on-Wakeup} & 43.5s (-22.2\%) & 471.1s (-13.2\%) \\
-		\emph{Both} & 43.3s (-22.6\%) & 465.6s (-14.2\%) \\
-		\hline
+	  	\textbf{Bug Fixes} & \textbf{Full Database benchmark} \\ \hline
+		\emph{No bugfix} & 542.9s \\ \hline
+		\emph{Group Imbalance} & 512.8s (1.05x) \\ \hline
+		\emph{Overload-on-Wakeup} & 471.1s (1.13x) \\ \hline
+		\emph{Both} & 465.6s (1.14x) \\ \hline
 	\end{tabular}
 	\caption{"Impact of these bug fixes on a popular commercial database (values averaged after five runs.)"~\cite{Lozi:2016}}
 \end{table}
-
-They disabled and re-enabled a core before each run of the benchmark
+\begin{itemize}
+	\item They disabled and re-enabled a core before each run of the benchmark
+\end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Missing Scheduling Domain bugfix results}
-
-Occurs rarely, but easily reproducible
+\begin{itemize}
+	\item Occurs rarely, but easily reproducible
+\end{itemize}
 
 \begin{table}
 	\centering
 	\begin{tabular}{| c | c | c | c |}
 		\hline			
-	  	Application & Time w/ bug (sec) & Time w/o bug (sec) & Speedup factor (x) \\ \hline
-		ep & 72 & 18 & 4.0 \\ \hline
-		mg & 81 & 9 & 9.03 \\ \hline
-		lu & 2196 & 16 & 137.59 \\ \hline	
-		\hline
+	  	\textbf{Application} & \textbf{With bug (sec)} & \textbf{Fixed (sec)} & \textbf{Improvement} \\ \hline
+		\emph{ep} & 72 & 18 & 4.0x \\ \hline
+		\emph{mg} & 81 & 9 & 9.03x \\ \hline
+		\emph{lu} & 2196 & 16 & 137.59x \\ \hline	
 	\end{tabular}
-	\caption{"NPB applications with least, median and most improvement between a bugged and fixed scheduler"~\cite{Lozi:2016}}
+	\caption{NPB applications with least, median and most improvement between a bugged and fixed scheduler~\cite{Lozi:2016}}
 \end{table}
 \end{frame}
-
-
 
 \subsection*{Outline}
 
@@ -231,11 +244,17 @@ Occurs rarely, but easily reproducible
 \subsection[Threads]{Threads}
 
 \begin{frame}
-\frametitle{Introduction}
+\frametitle{Processors}
 	\begin{itemize}
-	\item The computer processor is responsible for executing compiled code.
-		\item A single-core processor has one \emph{processing unit}, while a multi-core processor has many \emph{processing units}.
-
+	\item Responsible for executing code
+	\linespace
+	\item Contain a number of cores:	
+	\begin{itemize}
+		\item \emph{Single-core processor} (one processing unit) 
+		\item \emph{Multicore processor} (two or more processing units)
+		\item \emph{Manycore processor} (20 or more processing units)
+	\end{itemize}
+	\linespace
 	\item A processor with multiple cores allows it to perform tasks concurrently on each core
 	\end{itemize}
 \end{frame}
@@ -245,8 +264,6 @@ Occurs rarely, but easily reproducible
 
 \begin{columns}
 	\begin{column}{0.5\textwidth}
-		\emph{Threads} allow a program to run multiple independent tasks at the same time
-
 		\linespace
 		\begin{itemize}
 		\item Imagine you're using photoshop but it has one thread
@@ -266,6 +283,11 @@ Occurs rarely, but easily reproducible
 
 \begin{frame}
 \frametitle{Using Threads}
+
+\begin{itemize}
+	\item \emph{Threads} allow a program to run multiple independent tasks at the same time
+\end{itemize}
+
 
 \begin{columns}
 	\begin{column}{0.5\textwidth}
@@ -295,15 +317,17 @@ Occurs rarely, but easily reproducible
 \begin{frame}
 \frametitle{Race Conditions}
 
-One problem multithreaded programs face are called \emph{Race~Conditions}
+\begin{itemize}
+	\item Problem in multithreaded systems.
+\end{itemize}
 
 \linespace
 
-Defined in Saltzer and Kaashoek as ``A timing-dependent error in thread coordination that may result in threads computing incorrect results'' 
+\begin{quote}
+A timing-dependent error in thread coordination that may result in threads computing incorrect results
+\end{quote}
+\rightline{{\rm --- Saltzer and Kaashoek [W]}}
 
-\linespace
-
-Let's see an example where two threads increment a shared variable
 \end{frame}
 
 \begin{frame}
@@ -323,20 +347,17 @@ Let's see an example where two threads increment a shared variable
 
 \begin{itemize}
 	\item Race conditions can be fixed by controlling access to shared data.
-	\item This control is achieved by employing locks
+	\item Control is achieved by employing locks
 	
 	\linespace
 	
-	\item \emph{Locks} secure objects or data shared between threads such that only one thread can read and write to it at one time
+	\item \emph{Locks} secure objects or data shared between thread so that only one thread can read and write to it at one time
 
 	\linespace
 
-	\item When a thread \emph{locks} a lock, that thread \textbf{acquires} the lock
-	\item When a thread \emph{unlocks} a lock, that thread \textbf{releases} the lock
+	\item When a thread \emph{locks} a lock it \textbf{acquires} the lock
+	\item When a thread \emph{unlocks} a lock it \textbf{releases} the lock
 \end{itemize}
-
-Now, let's fix the race condition in the previous example using locks
-
 \end{frame}
 
 \begin{frame}
@@ -347,67 +368,24 @@ Now, let's fix the race condition in the previous example using locks
 	\end{figure}
 \end{frame}
 
-\section[Thread Scheduling]{Thread Scheduling on Linux}
-\subsection[CFS]{Completely Fair Scheduler}
-\begin{frame}
-\frametitle{Completely Fair Scheduler (CFS)}
-
-\begin{itemize}
-\item Default Linux thread scheduler (there are others)
-\item Handles which threads are executed at what times on this core
-\item Spend a \emph{fair} amount of runtime on all threads
-\end{itemize}
-
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Completely Fair Scheduler (CFS)}
-
-\begin{itemize}
-\item Like any program, runs on one core
-\item Makes sure all threads run \emph{at least once} within an arbitrary interval of CPU~cycles
-\item Distribute \emph{timeslices} (max CPU cycles) among threads
-\item Threads with higher priority (weights) get larger timeslices
-\item Monitors the number of cycles that the running thread receives and switches it out when it exceeds its timeslice
-\end{itemize}
-
-\begin{figure}
-		\includegraphics[width=0.8\textwidth]{Illustrations/CFS}
-		\label{fig:cfs}
-\end{figure}
-
-\linespace
-
-\end{frame}
-
-\begin{frame}
-\frametitle{Runqueues}
-
-\begin{itemize}
-	\item The data structure within the CFS that contains threads is called a runqueue
-	\item A \emph{runqueue} is a priority queue that sorts for threads that have received the least cycles in the current interval
-	\item When a thread reaches its maximum time, the first thread in the runqueue is chosen to replace
-\end{itemize}
-
-\end{frame}
-
-
-
-
-\begin{frame}
-\frametitle{Runqueues on Multiple Cores}
-If each core needs work to do, how are threads distributed?
-
-\linespace
-
-Before we can answer this question, we need to know some about switching threads, cache and processor state
-
-\end{frame}
-
-
-
 \subsection[Cache]{Thread State and Cache}
+
+\begin{frame}
+\frametitle{Process and Thread State}
+\begin{itemize}
+\item Process State
+
+\begin{itemize}
+	\item[] Resources shared amongst its multiple threads
+\end{itemize}
+
+\item Thread State
+
+\begin{itemize}
+	\item[] Scheduler uses this information to pause and resume a thread's execution
+\end{itemize}
+\end{itemize}
+\end{frame}
 
 \begin{frame}
 \frametitle{Context Switching}
@@ -418,23 +396,6 @@ Before we can answer this question, we need to know some about switching threads
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Process and Thread State}
-
-Process State
-
-\begin{itemize}
-	\item[] Consists of resources that each of its threads should have access to including compiled code, and data.
-\end{itemize}
-
-Thread State
-
-\begin{itemize}
-	\item[] Scheduler uses this information to pause and resume a thread's execution
-\end{itemize}
-
-\end{frame}
-
 
 \begin{frame}
 \frametitle{Cache}
@@ -442,11 +403,15 @@ Thread State
 \begin{columns}
 \begin{column}{0.5\textwidth}
 \begin{itemize}
-	\item Memory and cache exists in a hierarchy %POINT ON SLIDE L1, L2, Last-level cache
-	\item How cache is arranged depends on the machine:
+	\item Local copy of data designed for fast retrieval
+	\item Hierarchical structure %POINT ON SLIDE L1, L2, Last-level cache
+	\linespace
+	\item Placement relative to core:
 	\begin{itemize}
-		\item A cache can exist \emph{on}, \emph{built-in} to, or \emph{outside} a processor
-		\item Cache can be one per \emph{n} processors or one per \emph{n} cores
+		\item on
+		\item inside of
+		\item outside
+
 	\end{itemize}
 \end{itemize}
 
@@ -487,15 +452,65 @@ Thread State
 \end{frame}
 
 
+\section[Thread Scheduling]{Thread Scheduling on Linux}
+\subsection[CFS]{Completely Fair Scheduler}
 \begin{frame}
-\frametitle{Runqueues on Multiple Cores (Revisited)}
+\frametitle{Completely Fair Scheduler (CFS)}
 
-Since process states are heaver than thread states, context switches between threads of different processes are more expensive
+\begin{itemize}
+\item Default Linux thread scheduler (there are others)
+\item Handles which threads are executed at what times on this core
+\item Spend a \emph{fair} amount of runtime on all threads
+\linespace
+
+\item Designed with Responsiveness, Fairness, and load-balancing in mind.
+
+
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Single-core Completely Fair Scheduler (CFS)}
+
+\begin{itemize}
+\item Runs on one core
+\item Ensure all threads run \emph{at least once} within arbitrary interval of CPU~cycles
+\item Distribute \emph{timeslices} (max CPU cycles) among threads
+\item Threads with higher priority (weights) get larger timeslices
+
+\end{itemize}
+
+\begin{figure}
+		\includegraphics[width=0.8\textwidth]{Illustrations/CFS}
+		\label{fig:cfs}
+\end{figure}
 
 \linespace
 
+\end{frame}
+
+\begin{frame}
+\frametitle{CFS Runqueue}
+
 \begin{itemize}
-	\item If all cores shared one runqueue, access and changes to it would need to be synchronous and cache-coherent
+	\item Data structure containing threads
+	\item Priority queue: sorts threads by number of cycles consumed in current interval
+	\item When thread reaches its maximum cycles, preempted
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Runqueues on Multiple Cores}
+
+\begin{itemize}
+
+	\item Since process states are heaver than thread states, context switches between threads of different processes are more expensive
+
+	\linespace
+
+	\item If cores shared a runqueue, access and changes need to be synchronous and cache-coherent
 	\item This would slow the system to a crawl
 	\item So each core has its own runqueue and threads
 \end{itemize}
@@ -503,12 +518,12 @@ Since process states are heaver than thread states, context switches between thr
 \linespace
 
 \begin{itemize}
-\item In order to best take advantage of available cores, the load on each of the core's runqueues must stay balanced.
-\item Most schedulers, including the CFS periodically run a load-balancing algorithm
+\item Load on each of the core's runqueues must stay balanced
+\item CFS periodically runs a load-balancing algorithm
 \end{itemize}
 \end{frame}
 
-\section[New Schedulers]{Two new schedulers}
+\section[New Schedulers]{Two New Schedulers}
 
 
 \begin{frame}
@@ -517,7 +532,7 @@ Since process states are heaver than thread states, context switches between thr
 
 \linespace
 
-Both schedulers aim to solve the same problem, but for different processor types.
+Both schedulers aim to solve the same problem, but for different architectures.
 
 \linespace
 
@@ -531,7 +546,7 @@ FLSCHED & $\rightarrow$ & single-chip manycore processor\\
 \end{table}
 
 \linespace
-\textbf{Problem:} As you add more threads to parallel computing problems, they start to operate slower rather than faster!
+\textbf{Problem:} Adding more threads to parallel computing applications on CFS makes the application operate slower rather than faster!
 
 \linespace
 
@@ -564,7 +579,7 @@ Shuffler
 
 \subsection{FLSCHED}
 \begin{frame}
-\frametitle{FLSCHED}
+\frametitle{FLSCHED: The Lockless Monster}
 
 (in short, unfinished)
 
@@ -574,7 +589,7 @@ Designed by Jo et al. with manycore processors (specifically the Xeon Phi) in mi
 
 The Xeon and Xeon Phi manycore processors come with varying degrees of cores, from 24 to 76 cores. With such potential for parallelism and as the number of cores rise, any small hitch in a critical system component can lead to significant performance degradation. 
 
-The hithces that they isolated were due to locks emplaced by features and requirements of the CFS scheduler.
+The hitches that they isolated were due to locks emplaced by features and requirements of the CFS scheduler.
 
 \end{frame}
 
