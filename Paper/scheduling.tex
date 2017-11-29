@@ -183,14 +183,28 @@ For load balancing, cores exist in a hierarchy where each level is called a \emp
 
 
 {\SetAlgoNoLine%
+	\DontPrintSemicolon 
+	\SetKwFunction{Frog}{Function running on each cpu $\textit{cur\_cpu:}$}
 \begin{algorithm}
-\Indm\Indmm
-Function running on each cpu $\textit{cur\_cpu:}$ \\
-\Indp\Indpp
-    \BlankLine
+% \Indm\Indmm
+% \caption{Function running on each cpu $\textit{cur\_cpu:}$}
+%\begin{minipage}{.92\linewidth}
+%	Function running on each cpu $\textit{cur\_cpu:}$
+%	Lots more text running on and on and on\ldots 
+%	Lots more text running on and on and on\ldots 
+%	Lots more text running on and on and on\ldots 
+%	Lots more text running on and on and on\ldots 
+%	Lots more text running on and on and on\ldots 
+%	Lots more text running on and on and on\ldots 
+%	Lots more text running on and on and on\ldots 
+%\end{minipage}
+%\KwFunction{Function running on each cpu $\textit{cur\_cpu:}$}
+% \Indp\Indpp
+%    \BlankLine
+\Frog\;
 	\ForAll{sd in sched\_domains of cur\_cpu}{
-		\If{sd has idle cores}{first\_cpu = $1^{st}$ idle CPU of sd}
-		\Else{
+		\eIf{sd has idle cores}{first\_cpu = $1^{st}$ idle CPU of sd}
+		{
 			first\_cpu = $1^{st}$ CPU of sd 
 		}
 		\If{cur\_cpu $\neq$ first\_cpu}{
@@ -199,22 +213,21 @@ Function running on each cpu $\textit{cur\_cpu:}$ \\
 		\ForAll{sched\_group sg $\textbf{in}$ sd}{
 			sg.load = average loads of CPUs in sg
 		}
-		busiest = overloaded sg with the highest load \\
-			\,($\textbf{or}$, if inexistent) imbalanced sg with the highest load \\
-			\,($\textbf{or}$, if inexistent) sg with the highest load \\
-		local = sg containing cur\_cpu \\
+		busiest = overloaded sg with the highest load\;
+			\quad($\textbf{or}$, if inexistent) imbalanced sg with highest load\;
+			\quad($\textbf{or}$, if inexistent) sg with the highest load\;
+		local = sg containing cur\_cpu \;
 		\If{busiest.load $\leq$ local.load}{
 			$\textbf{continue}$
 		}
-		busiest\_cpu = pick busiest cpu of sg
-		try to balance load between busiest\_cpu and cur\_cpu
+		busiest\_cpu = pick busiest cpu of sg\;
+		try to balance load between busiest\_cpu and cur\_cpu\;
 		\If{load cannot be balanced due to tasksets}{
 		exclude busiest\_cpu, $\textbf{goto}$ line 18
 		}
 	}
 \label{fig:cfsloadbalancer}	
-\caption{Simplified CFS Load Balance algorithm from Lozi et al. CPUs are cores.~\cite{Lozi:2016}}
-\todo[inline]{(LaTeX) the forall should start at line 1...}
+\caption{Simplified CFS Load Balance algorithm from Lozi et al.~\cite{Lozi:2016} A separate instance of this function is running on each CPU, $\textit{cur\_cpu:}$ CPUs are cores.}
 \end{algorithm}
 }
 
