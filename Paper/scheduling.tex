@@ -66,8 +66,6 @@ Daniel C. Frazier\\
 }
 \maketitle
 
-\todo[inline]{This is an incomplete draft.}
-
 \begin{abstract}
 
 Thread scheduling is a problem that has been around since the 1960s. By the early 2000s, thread scheduling was commonly believed to be solved in the Linux community. However, with the rising popularity of multiprocessor and multicore systems, and the rapidly developing requirements driven by new hardware, the problem space has become considerably more complex. This paper will describe some newly found issues in the Linux scheduler, their fixes, and two new schedulers designed for improved performance. Each of the developments meaningfully improve the average efficiency of popular relevant benchmarks.
@@ -117,11 +115,11 @@ In a typical multiprocessor multicore setup, at the lowest level of the cache hi
 \end{figure}
 
 
-L1 cache is also called last \emph{level cache (LLC)}. Last level cache has the fastest data lookup times from a core because it is located nearest to the CPU. If data is not found in an L1 cache, it is called an \emph{LLC miss} and the data is searched for in the next level of cache. If the data can not be found in any level of cache, it is called a \emph{cache miss} and external memory is consulted for the data. Moving data on to the cache and closer to the CPU improves \emph{locality} because it makes the data more ``local'' to where it needs to be. Improving locality improves performance because the system works less hard to load the data it needs.~\cite{WikiCache}
+L1 cache is also called last \emph{level cache (LLC)}. Last level cache has the fastest data lookup times from a core because it is located nearest to the CPU. If data is not found in an L1 cache, it is called an \emph{LLC miss} and the data is searched for in the next level of cache. If the data can not be found in any level of cache, it is called a \emph{cache miss} and external memory is consulted for the data. Moving data on to the cache and closer to the CPU improves \emph{locality} because it makes the data more ``local'' to where it needs to be. Improving locality improves performance because the system works less hard to load the data it needs.
 
 An important property of a system that employs cache is that it should be \emph{cache coherent}. When data is written into cache, it must propogate to all levels of cache accessible to the processor that issued the write. There are increasing read/write latencies for each level of cache away from a processor. Any changes to a portion of data in an L1 cache must propogate to L2, L3, etc. A system that is cache coherent is a system that satisfies the invariant that any data that is read that pertains to a certain portion of cached data must be consistent with the most recent write to that portion of data. This becomes a difficult problem in the instance that two different cores have both cached the same portion of data and are making concurrent reads and writes to this data.~\cite{Systems}
 
-Context switching between two cores involves ensuring that the replacing thread has the resources it needs available on its new core's cache. Recall that a processor's state is much larger than thread's state. Because of this, context switching is typically fastest between threads who share a process because the processor's state wouldn't need to migrate to another cache~\cite{WikiThreads}.
+Context switching between two cores involves ensuring that the replacing thread has the resources it needs available on its new core's cache. Recall that a processor's state is much larger than thread's state. Because of this, context switching is typically fastest between threads who share a process because the processor's state wouldn't need to migrate to another cache.
 
 Some processor setups involve sharing cache between processors. Cache sharing is not ideal, though, because a mechanism must be emplaced to arbitrate \emph{synchronous} access to shared data (synchronous access will be defined in the following subsection.) Further, per-proccessor cache can be physically integrated into processors in order to minimize cache access latency where shared cache can not. The most common approach to maintain strict consistency in cache is to somehow \emph{invalidate} cache entries. How cache invalidation works is out of the scope of this paper~\footnote{See Section 10.2.4 in Part II of Principles of Computer System Design by Saltzer, Jerome and Kaashoek, M. Frans for more information on cache invalidation.}.~\cite{Systems}
 
@@ -241,14 +239,14 @@ Several optmizations made the scheduler such that it runs the load balancing ope
 \subsection{Bugs and Fixes for the CFS}
 \label{sec:cfsbugs}
 
-Now that we know how the load balancer functions, we will now dive into the bugs that occur as a result of the complex, strict requirements that have built up over time on the CFS.
+Now that we know how the load balancer functions, we will now dive into the bugs that occur as a result of the complex, strict requirements that have built up over time on the CFS. Performance results from Lozi et al. were gathered using the \emph{NAS Parallel Benchmark (NPB)}. The NPB is a set of parallel programs that are executed and monitored to evaluate the efficiency of massively parallel computing systems (supercomputers).
 
 \subsubsection{The Group Imbalance bug}
 \label{sec:cfsfault_grpimbalance}
 
-Lozi et al. found that the scheduler was periodically not balancing load due to two reasons. The hierarchical design and complexity of the load metric. The researchers were running a 64 threaded  Process A on node A simultaneously with a single threaded Process B on node B. Because of group schedule feature in the definition of load metric where the load of a thread is divided by the number of threads in the parent process, the amount of load for each of A's threads are 1/64 of the load of the one B thread. On their system they observed that two nodes were underloaded and should have been stealing work from more loaded cores on other nodes, but this did not happen. This is due to the hierarchical design of the load balancer. When the load balancer considers stealing threads, it does not consider the load of a single core but rather the load of the whole scheduling group. In this case, the node with the B process had the same load as the node with the A process, so node B did not try to steal work from node A even though there were cores idle and available for work.~\cite{Lozi:2016}
+Lozi et al. found that the scheduler was periodically not balancing load due to two reasons. The hierarchical design and complexity of the load metric. The researchers were running a 64 threaded  Process A on node A simultaneously with a single-threaded Process B on node B. Because of group schedule feature in the definition of load metric where the load of a thread is divided by the number of threads in the parent process, the amount of load for each of A's threads are 1/64 of the load of the one B thread. On their system they observed that two nodes were underloaded and should have been stealing work from more loaded cores on other nodes, but this did not happen. This is due to the hierarchical design of the load balancer. When the load balancer considers stealing threads, it does not consider the load of a single core but rather the load of the whole scheduling group. In this case, the node with the B process had the same load as the node with the A process, so node B did not try to steal work from node A even though there were cores idle and available for work.~\cite{Lozi:2016}
 
-They fixed this problem by instead of defining load of a scheduling group as the average load of cores in the group, it is defined by the load of the core with the minimum load in the scheduling group. By fixing this issue, the efficiency of the single-threaded process B remained the same, however the completion time of process A decreased by 13 percent. On a certain parallel program within the NAS benchmark called lu, this bug fix improved performance by 13 times because the bug compounded lock contention by colocated threads.~\cite{Lozi:2016}
+They fixed this problem by instead of defining load of a scheduling group as the average load of cores in the group, it is defined by the load of the core with the minimum load in the scheduling group. By fixing this issue, the efficiency of the single-threaded process B remained the same, however the completion time of process A decreased by 13 percent. On a certain parallel program within the NPB called lu, this bug fix improved performance by 13 times because the bug compounded lock contention by colocated threads.~\cite{Lozi:2016}
 
 \subsubsection{The Scheduling Group Construction bug}
 \label{sec:cfsfault_grpconstruct}
@@ -257,12 +255,12 @@ There is a function in Linux called taskset which allows an application to pin i
 
 Within that system, the two scheduling groups constructed are {0,1,2,4,6} and {1,2,3,4,5,7}. Nodes 1 and 2 are two hops from each other but occur in both scheduling groups. When load balancing runs on Node 2 and it should steal work from an overloaded Node 1, it will look between the scheduling groups to compare which is lower. But both scheduling groups contain Node 1 and 2, so both scheduling groups' average load will be the same! Node 2 will never steal work.~\cite{Lozi:2016}
 
-They fixed this bug by constructing scheduling groups relative to each core's own perspective. This allows nodes that are two hops away that should otherwise be able to share work to be a part of different scheduling groups and successfully contend for load balancing. Fixing this bug improved efficiency of 9 parallel programs in the NAS benchmark problems mostly by around 2 times, but for one problem, lu, up to 27 times. lu is an extreme example where all threads were being allocated only on one core.~\cite{Lozi:2016}
+They fixed this bug by constructing scheduling groups relative to each core's own perspective. This allows nodes that are two hops away that should otherwise be able to share work to be a part of different scheduling groups and successfully contend for load balancing. Fixing this bug improved efficiency of 9 parallel programs in the NPB problems mostly by around 2 times, but for one problem, lu, up to 27 times. lu is an extreme example where all threads were being allocated only on one core.~\cite{Lozi:2016}
 
 \begin{figure}
 \centering
 \psfig{file=CFS_AdjacentNodes.png,width =3in}
-\caption{8-node AMD Bulldozed machine from Lozi et al.~\cite{Lozi:2016}}
+\caption{8-node AMD Bulldozer machine from Lozi et al.~\cite{Lozi:2016}}
 \label{fig:cfs_schedgroups}
 \end{figure}
 
@@ -303,18 +301,13 @@ If sampled lock times exceed a certain threshold, threads are sorted by their lo
 On an iteration of the shuffling procedure (every 500 ms), shuffling checks to make sure that if any threads aren't on processors that they were grouped to, they are migrated. Threads that are already on the processor that they were assigned to do not migrate. If the way that threads interacted with eachother doesn't change, the shuffling step is effectively skipped.~\cite{Kumar:2014}
 \end{description}
 
-Now that we know how the Shuffling Framework works, let's review the results that implementing it gives us.
 
-\subsubsection{Shuffler Performance}
-\label{sec:shuf_performance}
-
-Kumar et al. chose certain programs from several benchmarks that contained high lock contention to assess Shuffler performance: SPEC jbb2005 (JB), PBZIP2 (PB), and programs from three suites PARSEC(BT, FA, FS, SC), SPEC OMP2001 (AL, AM, AS, EQ, FM, GA, GL, MG, SM, WW) and SPLASH2(OC, RT, RX, VL). Figure \ref{fig:shuf_performance} details the improvements that Shuffling made relative to the default Solaris scheduler and three other schedulers. A positive number denotes that that scheduler was that more efficient than the default Solaris scheduler for that program. Each of the programs are multithreaded. The one they highlight the most was the Body Tracking (BT) algorithm of whose performance improved by 54 percent.~\cite{Kumar:2014} Figure \ref{fig:shuf_vs_solaris} compares the efficiency of Shuffler versus Solaris for the 20 same multithreaded programs. With these results we can say that multithreaded programs that had high lock contention perform faster under Shuffler than Solaris, but say nothing about the performance difference of programs who don't experience high lock contention.
+Now that we know how the Shuffling Framework works, let's review the results that implementing it gives us. Kumar et al. chose certain programs from several benchmarks that contained high lock contention to assess Shuffler performance: SPEC jbb2005 (JB), PBZIP2 (PB), and programs from three suites PARSEC(BT, FA, FS, SC), SPEC OMP2001 (AL, AM, AS, EQ, FM, GA, GL, MG, SM, WW) and SPLASH2(OC, RT, RX, VL). Figure \ref{fig:shuf_performance} details the improvements that Shuffling made relative to the default Solaris scheduler and three other schedulers. A positive number denotes that that scheduler was that more efficient than the default Solaris scheduler for that program. Each of the programs are multithreaded. The one they highlight the most was the Body Tracking (BT) algorithm of whose performance improved by 54 percent.~\cite{Kumar:2014} Figure \ref{fig:shuf_vs_solaris} compares the efficiency of Shuffler versus Solaris for the 20 same multithreaded programs. With these results we can say that multithreaded programs that had high lock contention perform faster under Shuffler than Solaris, but say nothing about the performance difference of programs who don't experience high lock contention.
 \begin{figure}
 \centering
 \psfig{file=Performance_Shuffler.png,width =3in}
-\caption{Performance Improvements relative to Solaris across 20 high-lock time multithreaded programs from various benchmarks. From Kumar et al.~\cite{Kumar:2014}}
+\caption{Shuffler performance relative to Solaris across 20 high-lock time multithreaded programs~\cite{Kumar:2014}}
 \label{fig:shuf_performance}
-\todo[inline]{Should be a "table" not a figure}
 \end{figure}
 
 \begin{figure}
@@ -326,19 +319,19 @@ Kumar et al. chose certain programs from several benchmarks that contained high 
 
 We just saw that lock contention is a problem for multithreaded parallel programs. Next we will cover a scheduler that takes a different approach to alleviating the lock contention problem. FLSCHED is a scheduler whose implementation has no locks, reduces context switches, and makes more efficient scheduling decisions than CFS.~\cite{Jo:2017}
 
-\subsection{FLSCHED for Xeon Phi Manycore Processor}
+\subsection{Xeon Phi Manycore Coprocessor}
 \label{sec:flsched}
 
-Manycore processors continue become more powerful and as such, more popular. The latest manycore processor as of September 2 2017, the latest version of Xeon Phi, has up to 76 physical cores where each core has small cache. The number of cores a processor has is expected to increase given the popularity and importance of highly-parallel algorithms such as machine learning. The CFS was not built for this degree of parallelism. As the number of cores increase the negative impact of lock contention on the scheduler performance increases exponentially. As well, the cost of context switching continues to increase as hardware becomes capable of solving larger problems.
+FLSCHED was built for maximal efficiency on manycore processors. Manycore processors contain upwards of about 20 cores. They continue to become more powerful and as such, more popular. The Xeon Phi is a family of manycore coprocessors that allow a primary processor to offload expensive work. The latest version of Xeon Phi as of September 2 2017 had up to 76 cores. The number of cores a processor has is expected to increase given the popularity and importance of highly-parallel algorithms such as machine learning. The CFS was not built for this degree of parallelism. The cost of context switching continues to increase as hardware becomes capable of solving larger problems. Unfortunately, the density of cores on manycore processors causes them to have very small L1 cache. As the number of cores increase, the negative impact of lock contention on scheduler performance increases exponentially.
 
-The context switch overhead for the Xeon Phi is larger than usual processors because it contains additional vector-processing register sets. \cite{Jo:2017} A machine that supports vector processing allows one to perform instructions on vectors of data rather than scalars~\cite{Mellon}. The Xeon Phi comes in many sizes. The Xeon Phi processor used by FLSCHED researchers Jo, Kang, Min, and Kim had 57 cores. ~\cite{Jo:2017}
+The context switch overhead for the Xeon Phi is much larger than usual processors because it contains additional vector-processing register sets.~\cite{Jo:2017} A machine that supports vector processing allows one to perform instructions on vectors of data rather than scalars~\cite{Mellon}. The Xeon Phi processor used by FLSCHED researchers Jo et al. had 57 cores.~\cite{Jo:2017}
 
 \subsubsection{Lockless Thread Scheduler}
 \label{sec:flsched_about}
 
-The design goals for the CFS differ from the FLSCHED. The CFS was designed with different requirements in mind than FLSCHED. The CFS was designed with responsiveness, fairness and load-balancing in mind because it was intended for Desktop and Server use. The FLSCHED was designed strictly with efficiency in mind so responsiveness and fairness are not important. A great deal of state information is considered in the choice of what threads run and when. Since FLSCHED was intended for manycore parallel machines, it is more impactful to simply make descisions faster rather than more purposefully.~\cite{Jo:2017}
+The design goals and requirements for the CFS differ from the FLSCHED. The CFS was designed with responsiveness, fairness and load-balancing in mind because it was intended for desktop and server use. The FLSCHED was designed strictly with efficiency and computational throughput in mind. In the CFS, a great deal of state information is considered to decide what threads run and when. Since FLSCHED was intended for manycore parallel processors, it is more impactful to simply make decisions faster rather than more purposefully.~\cite{Jo:2017}
 
-The CFS implementation has 11 locks which are used for load balancing mechanisms, runqueue management, runtime statistics updates, and addition scheduler features. The FLSCHED itself has no locks. FLSCHED manages this by removing runtime statistics entirely from the scheduler as it does not depend on them to make decisions. FLSCHED does not use periodic load balancing, so it does not provide the feature to limit maximum CPU bandwidth, nor any of the CFS group features. While the FLSCHED substitutes for the CFS, it does still run through the scheduler core which has locks. Context switches on FLSCHED are polled by setting a bit in the scheduler. Responses to context switch requests are delayed on purpose to minimize the number of context switches.~\cite{Jo:2017}
+The CFS implementation employs 11 locks which are used for load balancing mechanisms, runqueue management, runtime statistics updates, and additional scheduler features. FLSCHED itself has no locks. It manages this by removing runtime statistics entirely from the scheduler, as it does not depend on them to make decisions. FLSCHED does not use periodic load balancing, so it does not provide the feature to limit maximum CPU bandwidth nor any of the CFS group features. While the FLSCHED substitutes for the CFS, it still runs through the scheduler core which employs locks. Contexts switches are requested, rather than performed outright. Commitments to context switch requests are delayed on purpose to minimize the number of context switches.~\cite{Jo:2017}
 
 Timeslices in FLSCHED are assigned Round-Robin. The only managed scheduling information is the timeslices that threads receive. Thread preemption in FLSCHED mostly occurs because there is another thread with a higher priority. Rather than immediately preempting the running thread to replace with the new thread, FLSCHED reorders runqueues such that the important thread will come next after a normal task switch.~\cite{Jo:2017}
 
@@ -346,7 +339,7 @@ Timeslices in FLSCHED are assigned Round-Robin. The only managed scheduling info
 \subsubsection{FLSCHED Perfomance}
 \label{sec:flsched_performance}
 
-To evaluate FLSCHED performance, researchers used the NAS Parallel Benchmark (NPB), a set of programs that are used to evaluate the efficiency of parallel computing systems. NPB version 3.3.1 consists of 10 problems, but two of which can not run on the Xeon Phi due to memory constraints. The tests were ran on FLSCHED, the CFS, and two more basic schedulers First-in first-out (FIFO) and Round Robin (RR) in order to compare. From the results of these tests (Figure \ref{fig:flsched_npb}), you can see that the FLSCHED scales better as the number of threads increases for six out of eight problems. Efficiency of the ep and is programs did not improve under FLSCHED. \cite{Jo:2017}
+ To evaluate FLSCHED performance, Jo et al. used the NPB. NPB version 3.3.1 consists of 10 problems, but two of which can not run on the Xeon Phi due to memory constraints. The tests were ran on FLSCHED, the CFS, and two more basic schedulers called First-in first-out (FIFO) and Round Robin (RR) in order to compare. From the results of these tests (Figure \ref{fig:flsched_npb}), you can see that the FLSCHED scales better as the number of threads increases for six out of eight problems. Efficiency of the ep and is programs degraded under FLSCHED.~\cite{Jo:2017}
 
 \begin{figure*}
 \centering
@@ -355,8 +348,7 @@ To evaluate FLSCHED performance, researchers used the NAS Parallel Benchmark (NP
 \label{fig:flsched_npb}
 \end{figure*}
 
-
-The researchers traced the cause of the efficiency improvements to minimizing a certain kind of lock called a spin lock from their scheduler. A spinlock is a type of lock that loops indefinitely checking whether it has unlocked yet. These locks are used if the lock is expected to take a short amount of time to avoid giving up the core to another context. Figure \ref{fig:flsched_spinlock} shows the percent of time that each of these schedulers spend processing spin locks. Time spent on spin locks was more than halved for programs cg, mg, sp and ua. \cite{Jo:2017}
+The researchers traced the cause of the efficiency improvements to minimizing a certain kind of lock called a spin lock from their scheduler. A spinlock is a type of lock that loops indefinitely checking whether it has unlocked yet. These locks are used if the lock is expected to take a short amount of time to avoid giving up the core to another context. Figure \ref{fig:flsched_spinlock} shows the percent of time that each of these schedulers spend processing spin locks. Time spent on spin locks was more than halved for programs cg, mg, sp and ua.~\cite{Jo:2017}
 
 \begin{figure}
 \centering
@@ -376,12 +368,10 @@ Finally, Jo et al. also measured per-function diagnostics of both the CFS and FL
 \todo[inline]{Should be a "table" not a figure}
 \end{figure*}
 
-\todo[inline]{FLSched source does not specify what kind of memory constraints disable those two parallel problems from being run on the Xeon Phi. What's stopping you from just attaching more RAM..? Is there some restriction on memory emplaced by using the Xeon Phi? The Xeon Phi is not a normal processor, the researchers appear to be interfacing with this processor through a primary system, so maybe it doesn't use ram and only has built-in memory or something..?}
-
 \section{Conclusions}
 \label{sec:conclusions}
 
-Most of the improvements to the CFS in Section \ref{sec:cfsbugs} improves user experience and system efficiency for Linux systems that use the CFS. The CFS functions well for the user and server systems it was designed to support, but falls short when it comes to highly parallel programs. The Shuffler makes highly parallel programs running on multicore multiprocessor systems function more efficienctly than on the CFS by migrating threads to make better use of hardware. The FLSCHED makes manycore parallel machines intended for problem-solving more efficient by removing features that a desktop or server system would normally have and implementing a simple, greedy approach to program execution.
+Most of the modifications to the CFS in Section \ref{sec:cfsbugs} improves user experience and system efficiency for Linux systems that use the CFS. The CFS functions well for the user and server systems it was designed to support, but falls short when it comes to highly parallel programs. The Shuffler makes highly parallel programs running on multicore multiprocessor systems function more efficienctly than on the CFS by migrating threads to make better use of hardware. The FLSCHED makes manycore parallel machines intended for problem-solving more efficient by removing features that a desktop or server system would normally have and implementing a simple, greedy approach to program execution.
 
 \section*{Acknowledgments}
 \label{sec:acknowledgments}
